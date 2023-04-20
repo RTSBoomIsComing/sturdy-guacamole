@@ -22,3 +22,7 @@ namespace sturdy_guacamole
 	};
 }
 
+#define g_device sturdy_guacamole::D3d11Application::Get().Device
+#define g_deviceContext sturdy_guacamole::D3d11Application::Get().DeviceContext
+#define g_swapChain sturdy_guacamole::D3d11Application::Get().SwapChain
+#define g_renderTargetView sturdy_guacamole::D3d11Application::Get().RenderTargetView

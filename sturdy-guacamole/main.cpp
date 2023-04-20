@@ -6,18 +6,15 @@
 
 namespace sturdy_guacamole
 {
-	ID3D11Device* g_pDevice{};
-	ID3D11DeviceContext* g_pDeviceContext{};
-	IDXGISwapChain* g_pSwapChain{};
 }
 
 // Forward declarations
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern IMGUI_IMPL_API void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int main()
 {
-	using namespace sturdy_guacamole;
-
 	// Initialize singleton win32 application
 	sturdy_guacamole::Win32Application win32App{};
 
@@ -25,10 +22,10 @@ int main()
 	::SetWindowLongPtrW(win32App.GetWindowHandle(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
 
 	// Initialize singleton d3d11 application
-	sturdy_guacamole::D3d11Application d3d11App{ Win32Application::Get().GetWindowHandle() };
+	sturdy_guacamole::D3d11Application d3d11App{ win32App.GetWindowHandle() };
 
 	// Initialize singleton imgui application
-	sturdy_guacamole::ImguiApplication imguiApp{ Win32Application::Get().GetWindowHandle(), D3d11Application::Get().Device.Get(), D3d11Application::Get().DeviceContext.Get()};
+	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), d3d11App.Device.Get(), d3d11App.DeviceContext.Get()};
 
 	bool quit{};
 	while (!quit)
@@ -39,18 +36,48 @@ int main()
 		{
 			::TranslateMessage(&msg);
 			::DispatchMessageW(&msg);
-			if (quit = msg.message == WM_QUIT)
-				break;
+			if (msg.message == WM_QUIT)
+				quit = true;
 		}
+		if (quit)
+			break;
 
 		// Run game code here
+
+		// Start the Dear ImGui frame
+		imguiApp.NewFrame();
+		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
+		ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::Image((void*)nullptr, ImVec2(1024, 768));
+		ImGui::End();
+
+		ImGui::Begin("Details Panel");
+		ImGui::Text("Hello world!");
+		ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
+		ImGui::Text("delta time: %f", ImGui::GetIO().DeltaTime);
+		ImGui::End();
+
+		// Rendering
+		ImGui::Render();
+		const float clear_color[4] { 0.45f, 0.55f, 0.60f, 1.00f };
+		g_deviceContext->OMSetRenderTargets(1, g_renderTargetView.GetAddressOf(), nullptr);
+		g_deviceContext->ClearRenderTargetView(g_renderTargetView.Get(), clear_color);
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+		// Update and Render additional Platform Windows (if there are floating windows)
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
+
+		g_swapChain->Present(1, 0); // Present with vsync
+
 	}
 
 	return 0;
 }
-
-// Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -59,6 +86,20 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
+	case WM_SIZE:
+		if (g_device && wParam != SIZE_MINIMIZED)
+		{
+			if (g_renderTargetView)
+				g_renderTargetView = nullptr;
+
+			g_swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+			// Create a render target view
+			ComPtr<ID3D11Texture2D> backBuffer;
+			g_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+			g_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &g_renderTargetView);
+		}
+		return 0;
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
 			return 0;
@@ -69,4 +110,3 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	return ::DefWindowProcW(hWnd, msg, wParam, lParam);
 }
-
