@@ -21,16 +21,17 @@ int main()
 	// Set WndProc for the application window
 	::SetWindowLongPtrW(sturdy_guacamole::g_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
 
-	while (true)
+	MSG msg{};
+	while (msg.message != WM_QUIT)
 	{
-		MSG msg{};
-		if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+		// Process any messages in the queue
+		while (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
 			::DispatchMessageW(&msg);
-			if (msg.message == WM_QUIT)
-				break;
 		}
+
+		// Run game code here
 	}
 
 	return 0;
