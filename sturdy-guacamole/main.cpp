@@ -1,11 +1,14 @@
 #include "Win32Application.h"
 #include "ImguiApplication.h"
+#include "D3d11Application.h"
 
 #include <iostream>
 
 namespace sturdy_guacamole
 {
-	HWND g_hWnd{};
+	ID3D11Device* g_pDevice{};
+	ID3D11DeviceContext* g_pDeviceContext{};
+	IDXGISwapChain* g_pSwapChain{};
 }
 
 // Forward declarations
@@ -15,28 +18,29 @@ int main()
 {
 	using namespace sturdy_guacamole;
 
-	// Create win32 application window
+	// Initialize singleton win32 application
 	sturdy_guacamole::Win32Application win32App{};
 
-	// Set global window handle
-	sturdy_guacamole::g_hWnd = win32App.GetWindowHandle();
-
 	// Set WndProc for the application window
-	::SetWindowLongPtrW(g_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
+	::SetWindowLongPtrW(win32App.GetWindowHandle(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
 
-	// Create imgui application
-	sturdy_guacamole::ImguiApplication imguiApp{ g_hWnd, nullptr, nullptr};
+	// Initialize singleton d3d11 application
+	sturdy_guacamole::D3d11Application d3d11App{ Win32Application::Get().GetWindowHandle() };
 
+	// Initialize singleton imgui application
+	sturdy_guacamole::ImguiApplication imguiApp{ Win32Application::Get().GetWindowHandle(), D3d11Application::Get().Device.Get(), D3d11Application::Get().DeviceContext.Get()};
 
-
-	MSG msg{};
-	while (msg.message != WM_QUIT)
+	bool quit{};
+	while (!quit)
 	{
 		// Process any messages in the queue
+		MSG msg{};
 		while (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
 			::DispatchMessageW(&msg);
+			if (quit = msg.message == WM_QUIT)
+				break;
 		}
 
 		// Run game code here
