@@ -25,7 +25,7 @@ int main()
 	sturdy_guacamole::Dx11Application dx11App{ win32App.GetWindowHandle() };
 
 	// Initialize singleton imgui application
-	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), dx11App.Device.Get(), dx11App.DeviceContext.Get()};
+	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), dx11App.GetDevice(), dx11App.GetDeviceContext()};
 
 	bool quit{};
 	while (!quit)
@@ -61,8 +61,12 @@ int main()
 		// Rendering
 		ImGui::Render();
 		const float clear_color[4] { 0.45f, 0.55f, 0.60f, 1.00f };
-		g_deviceContext->OMSetRenderTargets(1, g_renderTargetView.GetAddressOf(), nullptr);
-		g_deviceContext->ClearRenderTargetView(g_renderTargetView.Get(), clear_color);
+		ID3D11RenderTargetView* ppRenderTargetViews[]
+		{ 
+			g_pRenderTargetView 
+		};
+		g_pDeviceContext->OMSetRenderTargets(ARRAYSIZE(ppRenderTargetViews), ppRenderTargetViews, nullptr);
+		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView, clear_color);
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		// Update and Render additional Platform Windows (if there are floating windows)
@@ -72,7 +76,7 @@ int main()
 			ImGui::RenderPlatformWindowsDefault();
 		}
 
-		g_swapChain->Present(1, 0); // Present with vsync
+		g_pSwapChain->Present(1, 0); // Present with vsync
 
 	}
 
@@ -87,17 +91,9 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 	case WM_SIZE:
-		if (g_device && wParam != SIZE_MINIMIZED)
+		if (g_pDevice && wParam != SIZE_MINIMIZED)
 		{
-			if (g_renderTargetView)
-				g_renderTargetView = nullptr;
-
-			g_swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-
-			// Create a render target view
-			ComPtr<ID3D11Texture2D> backBuffer;
-			g_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-			g_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &g_renderTargetView);
+			g_dx11App.ResizeRenderTarget();
 		}
 		return 0;
 	case WM_SYSCOMMAND:

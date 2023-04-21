@@ -21,7 +21,7 @@ public:
 		s_instance = nullptr;
 	}
 
-	static T& Get()
+	static T& GetInstance()
 	{
 		if (!s_instance)
 			throw std::logic_error("Singleton does not exist.");
