@@ -1,6 +1,7 @@
 #include "Win32Application.h"
 #include "ImguiApplication.h"
 #include "Dx11Application.h"
+#include "Graphics.h"
 
 #include <iostream>
 namespace sturdy_guacamole
@@ -26,6 +27,39 @@ int main()
 	// Create imgui application
 	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), dx11App.GetDevice(), dx11App.GetDeviceContext()};
 
+	
+
+	// Set the viewport
+	D3D11_VIEWPORT viewport = CD3D11_VIEWPORT(0.0F, 0.0F, float(1024), float(768));
+	g_pDeviceContext->RSSetViewports(1, &viewport);
+
+
+	// Create Texture2D for RenderTarget
+	ComPtr<ID3D11Texture2D> renderTarget;
+	D3D11_TEXTURE2D_DESC desc{};
+	desc.Width = 1024;
+	desc.Height = 768;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	g_pDevice->CreateTexture2D(&desc, nullptr, &renderTarget);
+
+	// Create RenderTargetView
+	ComPtr<ID3D11RenderTargetView> renderTargetView;
+	g_pDevice->CreateRenderTargetView(renderTarget.Get(), nullptr, &renderTargetView);
+	g_pDeviceContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), nullptr);
+
+	// Initialize Graphics singleton instance
+	sturdy_guacamole::Graphics gfx{};
+
+	// Create ShaderResourceView
+	ComPtr<ID3D11ShaderResourceView> shaderResourceView;
+	g_pDevice->CreateShaderResourceView(renderTarget.Get(), nullptr, &shaderResourceView);
+
+	// Main message loop
 	bool quit{};
 	while (!quit)
 	{
@@ -43,12 +77,16 @@ int main()
 
 		// Run game code here
 
+
+
+
+
 		// Start the Dear ImGui frame
 		imguiApp.NewFrame();
 		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 		ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-		ImGui::Image((void*)nullptr, ImVec2(1024, 768));
+		ImGui::Image(shaderResourceView.Get(), ImVec2(1024, 768));
 		ImGui::End();
 
 		ImGui::Begin("Details Panel");
