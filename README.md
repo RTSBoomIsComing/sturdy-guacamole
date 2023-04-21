@@ -38,3 +38,5 @@ vcpkg manifest 파일 (vcpkg.json) 을 프로젝트에 포함할지 고민해보
 gltf 파일을 불러오는데 사용할 라이브러리는 아직 정하지 않았습니다.
 이것 저것 써 본 후에 결정하도록 하겠습니다.
 
+## result so far
+![first demo simple triangle](https://user-images.githubusercontent.com/61501369/233636451-45f75f5b-5d4b-4bd8-8313-616f457c7f6e.png)
