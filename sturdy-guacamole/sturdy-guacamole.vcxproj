@@ -131,13 +131,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="D3d11Application.cpp" />
+    <ClCompile Include="Dx11Application.cpp" />
     <ClCompile Include="ImguiApplication.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="D3d11Application.h" />
+    <ClInclude Include="Dx11Application.h" />
     <ClInclude Include="ImguiApplication.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="Win32Application.h" />

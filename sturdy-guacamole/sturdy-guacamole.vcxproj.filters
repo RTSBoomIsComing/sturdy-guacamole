@@ -24,7 +24,7 @@
     <ClCompile Include="ImguiApplication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D3d11Application.cpp">
+    <ClCompile Include="Dx11Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClInclude Include="ImguiApplication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D3d11Application.h">
+    <ClInclude Include="Dx11Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Singleton.h">

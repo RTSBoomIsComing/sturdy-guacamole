@@ -1,6 +1,6 @@
 #include "Win32Application.h"
 #include "ImguiApplication.h"
-#include "D3d11Application.h"
+#include "Dx11Application.h"
 
 #include <iostream>
 
@@ -21,11 +21,11 @@ int main()
 	// Set WndProc for the application window
 	::SetWindowLongPtrW(win32App.GetWindowHandle(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
 
-	// Initialize singleton d3d11 application
-	sturdy_guacamole::D3d11Application d3d11App{ win32App.GetWindowHandle() };
+	// Initialize singleton dx11 application
+	sturdy_guacamole::Dx11Application dx11App{ win32App.GetWindowHandle() };
 
 	// Initialize singleton imgui application
-	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), d3d11App.Device.Get(), d3d11App.DeviceContext.Get()};
+	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), dx11App.Device.Get(), dx11App.DeviceContext.Get()};
 
 	bool quit{};
 	while (!quit)

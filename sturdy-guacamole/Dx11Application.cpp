@@ -1,7 +1,7 @@
-#include "D3d11Application.h"
+#include "Dx11Application.h"
 #include <stdexcept>
 
-sturdy_guacamole::D3d11Application::D3d11Application(HWND hWnd)
+sturdy_guacamole::Dx11Application::Dx11Application(HWND hWnd)
 {
 	// Setup swap chain
 	DXGI_SWAP_CHAIN_DESC sd{};
