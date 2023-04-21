@@ -28,21 +28,21 @@ sturdy_guacamole::Dx11Application::Dx11Application(HWND hWnd)
 	const D3D_FEATURE_LEVEL featureLevelArray[2]{ D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
 	
 	HRESULT hr{};
-	hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &SwapChain, &Device, &featureLevel, &DeviceContext);
+	hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &m_swapChain, &m_device, &featureLevel, &m_deviceContext);
 	
 	if (hr == DXGI_ERROR_UNSUPPORTED) // Try high-performance WARP software driver if hardware is not available.
-		hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_WARP, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &SwapChain, &Device, &featureLevel, &DeviceContext);
+		hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_WARP, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &m_swapChain, &m_device, &featureLevel, &m_deviceContext);
 	
 	if (FAILED(hr))
 		throw std::runtime_error("Failed to create device and swap chain.");
 
 	// Create render target;
 	ComPtr<ID3D11Texture2D> backBuffer;
-	hr = SwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+	hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
 	if (FAILED(hr))
 		throw std::runtime_error("Failed to get back buffer from swap chain.");
 
-	hr = Device->CreateRenderTargetView(backBuffer.Get(), NULL, &RenderTargetView);
+	hr = m_device->CreateRenderTargetView(backBuffer.Get(), NULL, &m_renderTargetView);
 	if (FAILED(hr))
 		throw std::runtime_error("Failed to create render target view.");
 }
@@ -50,13 +50,13 @@ sturdy_guacamole::Dx11Application::Dx11Application(HWND hWnd)
 void sturdy_guacamole::Dx11Application::ResizeRenderTarget()
 {
 	// Release render target view
-	RenderTargetView = nullptr;
+	GetInstance().m_renderTargetView = nullptr;
 
 	// Resize swap chain
-	SwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+	GetSwapChain()->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 
 	// Create a render target view
 	ComPtr<ID3D11Texture2D> backBuffer;
-	SwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-	Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &RenderTargetView);
+	GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+	GetDevice()->CreateRenderTargetView(backBuffer.Get(), nullptr, &GetInstance().m_renderTargetView);
 }

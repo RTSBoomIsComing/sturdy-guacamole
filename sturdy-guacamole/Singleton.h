@@ -7,7 +7,6 @@ class Singleton
 protected:
 	inline static T* s_instance{};
 
-public:
 	Singleton()
 	{
 		if (s_instance)
@@ -21,6 +20,8 @@ public:
 		s_instance = nullptr;
 	}
 
+public:
+	// Inherit with protected when you want to hide GetInstance()
 	static T& GetInstance()
 	{
 		if (!s_instance)

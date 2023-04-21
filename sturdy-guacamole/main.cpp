@@ -3,7 +3,6 @@
 #include "Dx11Application.h"
 
 #include <iostream>
-
 namespace sturdy_guacamole
 {
 }
@@ -24,7 +23,7 @@ int main()
 	// Initialize singleton dx11 application
 	sturdy_guacamole::Dx11Application dx11App{ win32App.GetWindowHandle() };
 
-	// Initialize singleton imgui application
+	// Create imgui application
 	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), dx11App.GetDevice(), dx11App.GetDeviceContext()};
 
 	bool quit{};
@@ -92,9 +91,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_SIZE:
 		if (g_pDevice && wParam != SIZE_MINIMIZED)
-		{
-			g_dx11App.ResizeRenderTarget();
-		}
+			sturdy_guacamole::Dx11Application::ResizeRenderTarget();
 		return 0;
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu

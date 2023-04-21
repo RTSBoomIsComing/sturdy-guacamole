@@ -17,5 +17,3 @@ namespace sturdy_guacamole
 		HWND GetWindowHandle() { return m_hWnd; }
 	};
 }
-
-#define g_hWnd sturdy_guacamole::Win32Application::GetInstance().GetWindowHandle()
