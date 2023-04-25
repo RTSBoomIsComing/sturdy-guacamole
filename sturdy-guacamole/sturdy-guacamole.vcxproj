@@ -135,12 +135,14 @@
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImguiApplication.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MeshPrimitive.cpp" />
     <ClCompile Include="Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dx11Application.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImguiApplication.h" />
+    <ClInclude Include="MeshPrimitive.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="Win32Application.h" />
   </ItemGroup>

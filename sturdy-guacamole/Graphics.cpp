@@ -24,27 +24,6 @@ sturdy_guacamole::Graphics::Graphics()
 	auto vertexShader = CreateVertexShader(OutDir / L"BasicVS.cso", &inputLayout, inputElementDescs, ARRAYSIZE(inputElementDescs));
 	auto pixelShader = CreatePixelShader(OutDir / L"BasicPS.cso");
 
-	struct Vertex
-	{
-		float x, y, z;
-	};
-
-	Vertex vertices[]
-	{
-		{ 0.0f, 0.5f, 0.0f },
-		{ -0.5f, -0.5f, 0.0f },
-		{ 0.5f, -0.5f, 0.0f }
-	};
-
-	auto vertexBuffer = CreateVertexBuffer(vertices, sizeof(vertices));
-
-	UINT indices[]
-	{
-		0, 1, 2
-	};
-
-	auto indexBuffer = CreateIndexBuffer(indices, sizeof(indices));
-
 	ComPtr<ID3D11RasterizerState> rasterizerState;
 	D3D11_RASTERIZER_DESC rasterizerDesc{};
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
@@ -53,15 +32,6 @@ sturdy_guacamole::Graphics::Graphics()
 
 	g_pDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState);
 	g_pDeviceContext->RSSetState(rasterizerState.Get());
-
-
-	// Set the vertex buffer
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-	g_pDeviceContext->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
-
-	// Set the index buffer
-	g_pDeviceContext->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	// Set the input layout
 	g_pDeviceContext->IASetInputLayout(inputLayout.Get());
@@ -74,9 +44,6 @@ sturdy_guacamole::Graphics::Graphics()
 
 	// Set the pixel shader
 	g_pDeviceContext->PSSetShader(pixelShader.Get(), nullptr, 0);
-
-	// Draw
-	g_pDeviceContext->DrawIndexed(ARRAYSIZE(indices), 0, 0);
 }
 
 void sturdy_guacamole::Graphics::ThrowIfFailed(HRESULT hr, ID3DBlob* errorBlob)
