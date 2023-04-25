@@ -4,7 +4,7 @@
 
 namespace sturdy_guacamole
 {
-	class Win32Application : public Singleton<Win32Application>
+	class Win32Application : protected Singleton<Win32Application>
 	{
 	private:
 		HWND m_hWnd;

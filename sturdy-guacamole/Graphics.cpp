@@ -36,9 +36,6 @@ sturdy_guacamole::Graphics::Graphics()
 	// Set the input layout
 	g_pDeviceContext->IASetInputLayout(inputLayout.Get());
 
-	// Set the primitive topology
-	g_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	// Set the vertex shader
 	g_pDeviceContext->VSSetShader(vertexShader.Get(), nullptr, 0);
 

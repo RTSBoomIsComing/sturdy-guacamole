@@ -3,6 +3,7 @@
 #include "Dx11Application.h"
 #include "Graphics.h"
 #include "MeshPrimitive.h"
+#include "ConstantBuffers.h"
 
 // Include tiny_gltf
 #pragma warning( disable : 4996 )
@@ -15,8 +16,10 @@
 #define JSON_NOEXCEPTION
 #include <tiny_gltf.h>
 
-// Include DirectXMath
-#include <DirectXMath.h>
+// Include DirectX Tool Kit
+#include <directxtk/SimpleMath.h>
+#include <directxtk/Keyboard.h>
+#include <directxtk/Mouse.h>
 
 // Include standard library headers
 #include <sstream>
@@ -24,6 +27,7 @@
 #include <fstream>
 #include <filesystem>
 #include <format>
+#include <stdexcept>
 
 namespace sturdy_guacamole
 {
@@ -34,7 +38,7 @@ namespace sturdy_guacamole
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 extern IMGUI_IMPL_API void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-std::shared_ptr<tinygltf::Model> LoadModel(const char* filename);
+bool LoadModel(tinygltf::Model* model, const char* filename);
 int main()
 {
 	// Initialize win32 application singleton instance
@@ -49,6 +53,14 @@ int main()
 	// Create imgui application
 	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), dx11App.GetDevice(), dx11App.GetDeviceContext() };
 
+	// Initialize mouse singleton instance
+	std::unique_ptr<DirectX::Mouse> mouse = std::make_unique<DirectX::Mouse>();
+	mouse->SetWindow(win32App.GetWindowHandle());
+	DirectX::Mouse::ButtonStateTracker mouse_tracker;
+
+	// Initialize keyboard singleton instance
+	std::unique_ptr<DirectX::Keyboard> keyboard = std::make_unique<DirectX::Keyboard>();
+	DirectX::Keyboard::KeyboardStateTracker kb_tracker;
 
 	// Test code
 
@@ -82,49 +94,75 @@ int main()
 	g_pDeviceContext->RSSetViewports(1, &viewport);
 
 	// tiny_gltf loader
-	std::shared_ptr<tinygltf::Model> model;
-	try
-	{
-		model = LoadModel("D:\\Assets\\glTF\\SimpleTriangle\\SimpleTriangle.gltf");
-	}
-	catch (const std::runtime_error& e)
-	{
-		std::cerr << "ERROR: " << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+	tinygltf::Model model;
+	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf"
+	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Triangle\\glTF\\Triangle.gltf"
+	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf" };
+	bool res = LoadModel(&model, gltfPath.string().data());
+	if (res == false)
+		throw std::runtime_error("failed to load gltf");
+
 	// create vector of MeshPrimitive
 	std::vector<sturdy_guacamole::MeshPrimitive> meshPrimitives{};
 
-	auto& defaultScene = model->scenes[model->defaultScene];
-	for (size_t i{}; i < defaultScene.nodes.size(); i++)
+	auto& defaultScene = model.scenes[model.defaultScene];
+	for (const auto& mesh : model.meshes)
 	{
-		auto& rootNode = model->nodes[defaultScene.nodes[i]];
-		if (0 <= rootNode.mesh && rootNode.mesh < model->meshes.size())
+		// process primitive and render it
+		for (const auto& primitive : mesh.primitives)
 		{
-			// process mesh
-			auto& mesh = model->meshes[rootNode.mesh];
+			meshPrimitives.emplace_back(model, primitive);
 
-			// process primitive and render it
-			for (const auto& primitive : mesh.primitives)
-			{
-				meshPrimitives.emplace_back(*model, primitive);
-			
-				g_pDeviceContext->IASetVertexBuffers(0, 1, meshPrimitives.back().m_vertexBuffer.GetAddressOf(), 
-					&meshPrimitives.back().m_vertexBufferStride, &meshPrimitives.back().m_vertexBufferOffset);
+			// Set the input layout
+			// g_pDeviceContext->IASetInputLayout(inputLayout.Get());
 
-				// Set the index buffer
-				g_pDeviceContext->IASetIndexBuffer(meshPrimitives.back().m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-
-				// Set the input layout
-				// g_pDeviceContext->IASetInputLayout(inputLayout.Get());
-
-			}
 		}
 	}
 
-
 	// Test end
 
+	// create view, projection matrix
+	using namespace DirectX::SimpleMath;
+	Vector3 viewerPos{ 0.0f, 0.0f, 5.0f };
+	Matrix viewMatrix = Matrix::CreateLookAt(viewerPos, Vector3::Zero, Vector3::UnitY);
+	Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
+		DirectX::XMConvertToRadians(90.0f), 1280.0f / 960.0f, 0.1f, 100.0f);
+	
+	sturdy_guacamole::CommonConstants commonConstants{};
+	commonConstants.ViewMatrix = viewMatrix;
+	commonConstants.ProjMatrix = projMatrix;
+	commonConstants.ViewProjMatrix = (viewMatrix * projMatrix);
+	commonConstants.ViewerPos = Vector4{ viewerPos };
+
+	// Create common constant buffer
+	CD3D11_BUFFER_DESC commonConstantBufferDesc{ sizeof(commonConstants), D3D11_BIND_CONSTANT_BUFFER };
+	D3D11_SUBRESOURCE_DATA initialData{};
+	initialData.pSysMem = &commonConstants;
+
+	ComPtr<ID3D11Buffer> commonConstantBuffer;
+	HRESULT hr = g_pDevice->CreateBuffer(&commonConstantBufferDesc, &initialData, &commonConstantBuffer);
+	if (FAILED(hr))
+		throw hr;
+
+	// Create mesh constant buffer
+	sturdy_guacamole::MeshConstants meshConstants{};
+
+	CD3D11_BUFFER_DESC meshConstantBufferDesc{ sizeof(meshConstants), D3D11_BIND_CONSTANT_BUFFER };
+	initialData = {};
+	initialData.pSysMem = &meshConstants;
+	ComPtr<ID3D11Buffer> meshConstantBuffer;
+	hr = g_pDevice->CreateBuffer(&meshConstantBufferDesc, &initialData, &meshConstantBuffer);
+	if (FAILED(hr))
+		throw hr;
+
+	// Set constant buffer
+	ID3D11Buffer* pConstantBuffers[]
+	{
+		meshConstantBuffer.Get(),
+		commonConstantBuffer.Get(),
+	};
+	g_pDeviceContext->VSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
+	
 
 	// Main message loop
 	bool quit{};
@@ -143,6 +181,18 @@ int main()
 			break;
 
 		// Run game code here
+		using ButtonState = DirectX::Mouse::ButtonStateTracker::ButtonState;
+		auto mouse_state = mouse->GetState();
+		mouse_tracker.Update(mouse_state);
+
+		auto kb_state = keyboard->GetState();
+		kb_tracker.Update(kb_state);
+
+		if (mouse_tracker.leftButton == ButtonState::PRESSED)
+			std::cout << "left button pressed" << std::endl;
+
+		if (kb_tracker.pressed.A)
+			std::cout << "key A pressed" << std::endl;
 
 		// Start rendering
 		
@@ -156,10 +206,12 @@ int main()
 
 
 		// Set pipeline state
-		// ...
 		
 		// Rendering
-		g_pDeviceContext->DrawIndexed(3, 0, 0);
+		for (const auto& meshPrimitive : meshPrimitives)
+		{
+			meshPrimitive.Draw(g_pDeviceContext);
+		}
 
 		// Start the Dear ImGui frame
 		imguiApp.NewFrame();
@@ -206,17 +258,55 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		::PostQuitMessage(0);
 		return 0;
+
+	case WM_ACTIVATE:
+	case WM_ACTIVATEAPP:
+		DirectX::Keyboard::ProcessMessage(msg, wParam, lParam);
+		DirectX::Mouse::ProcessMessage(msg, wParam, lParam);
+		break;
+
+	case WM_SYSKEYDOWN:
+		if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000)
+		{
+			// This is where you'd implement the classic ALT+ENTER hotkey for fullscreen toggle
+		}
+		DirectX::Keyboard::ProcessMessage(msg, wParam, lParam);
+		break;
+
+	case WM_KEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		DirectX::Keyboard::ProcessMessage(msg, wParam, lParam);
+		break;
+
+	case WM_INPUT:
+	case WM_MOUSEMOVE:
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONDOWN:
+	case WM_MBUTTONUP:
+	case WM_MOUSEWHEEL:
+	case WM_XBUTTONDOWN:
+	case WM_XBUTTONUP:
+	case WM_MOUSEHOVER:
+		DirectX::Mouse::ProcessMessage(msg, wParam, lParam);
+		break;
+
+	case WM_MOUSEACTIVATE:
+		// When you click to activate the window, we want Mouse to ignore that event.
+		return MA_ACTIVATEANDEAT;
 	}
 	return ::DefWindowProcW(hWnd, msg, wParam, lParam);
 }
 
-std::shared_ptr<tinygltf::Model> LoadModel(const char* filename) {
-	auto model = std::make_shared<tinygltf::Model>();
+bool LoadModel(tinygltf::Model* model, const char* filename) {
 	tinygltf::TinyGLTF loader;
 	std::string err;
 	std::string warn;
 
-	bool res = loader.LoadASCIIFromFile(model.get(), &err, &warn, filename);
+	bool res = loader.LoadASCIIFromFile(model, &err, &warn, filename);
 	if (!warn.empty()) {
 		std::cout << "WARN: " << warn << std::endl;
 	}
@@ -226,9 +316,9 @@ std::shared_ptr<tinygltf::Model> LoadModel(const char* filename) {
 	}
 
 	if (!res)
-		throw std::runtime_error(std::format("Failed to load glTF: {}", filename));
+		std::cout << "Failed to load glTF: " << filename << std::endl;
 	else
 		std::cout << "Loaded glTF: " << filename << std::endl;
 
-	return model;
+	return res;
 }

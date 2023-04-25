@@ -42,7 +42,7 @@ sturdy_guacamole::Dx11Application::Dx11Application(HWND hWnd)
 	if (FAILED(hr))
 		throw std::runtime_error("Failed to get back buffer from swap chain.");
 
-	hr = m_device->CreateRenderTargetView(backBuffer.Get(), NULL, &m_renderTargetView);
+	hr = m_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_renderTargetView);
 	if (FAILED(hr))
 		throw std::runtime_error("Failed to create render target view.");
 }
