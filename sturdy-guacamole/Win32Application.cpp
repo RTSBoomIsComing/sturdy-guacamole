@@ -5,7 +5,17 @@ sturdy_guacamole::Win32Application::Win32Application()
 	// Create application window
 	WNDCLASSEXW wc{ sizeof(wc), CS_CLASSDC, DefWindowProcW, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, m_className, NULL };
 	::RegisterClassExW(&wc);
-	m_hWnd = ::CreateWindowW(wc.lpszClassName, L"sturdy guacamole", WS_OVERLAPPEDWINDOW, 100, 30, 1280, 960, NULL, NULL, wc.hInstance, NULL);
+	
+	RECT rect{ 0, 0, 1280, 960 };
+	::AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, false, WS_EX_OVERLAPPEDWINDOW);
+
+	int adjusted_width{ rect.right - rect.left };
+	int adjusted_height{ rect.bottom - rect.top };
+	
+	m_hWnd = ::CreateWindowW(wc.lpszClassName, L"sturdy guacamole", WS_OVERLAPPEDWINDOW, 100, 30, 
+		adjusted_width, adjusted_height, NULL, NULL, wc.hInstance, NULL);
+
+
 
 	// Show the window
 	::ShowWindow(m_hWnd, SW_SHOWDEFAULT);

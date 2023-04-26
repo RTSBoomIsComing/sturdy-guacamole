@@ -70,7 +70,7 @@ int main()
 	sturdy_guacamole::Graphics gfx{};
 
 	// Create Texture2D for RenderTarget
-	CD3D11_TEXTURE2D_DESC textureDesc{ DXGI_FORMAT_R16G16B16A16_FLOAT, 1024, 768, 1, 0,
+	CD3D11_TEXTURE2D_DESC textureDesc{ DXGI_FORMAT_R16G16B16A16_FLOAT, 1280, 960, 1, 0,
 		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE };
 
 	ComPtr<ID3D11Texture2D> renderTarget;
@@ -92,7 +92,7 @@ int main()
 	g_pDeviceContext->ClearRenderTargetView(renderTargetView.Get(), clear_color);
 
 	// Set the viewport
-	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, float(1024), float(768) };
+	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, float(1280), float(960) };
 	g_pDeviceContext->RSSetViewports(1, &viewport);
 
 	// tiny_gltf loader
@@ -168,28 +168,30 @@ int main()
 		// Process keyboard and mouse inputs
 		using ButtonState = DirectX::Mouse::ButtonStateTracker::ButtonState;
 		auto mouse_state = mouse->GetState();
+
+		if (mouse_state.positionMode == DirectX::Mouse::MODE_RELATIVE)
+		{
+			viewerRot.x -= float(mouse_state.y) * 0.3f * deltaTime;
+			viewerRot.y -= float(mouse_state.x) * 0.1f * deltaTime;
+		}
+
 		mouse_tracker.Update(mouse_state);
+		if (mouse_tracker.rightButton == ButtonState::PRESSED)
+		{
+			mouse->SetMode(DirectX::Mouse::MODE_RELATIVE);
+		}
+		else if (mouse_tracker.rightButton == ButtonState::RELEASED)
+		{
+			mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
+		}
 
 		auto kb_state = keyboard->GetState();
 		kb_tracker.Update(kb_state);
 
-		if (mouse_tracker.leftButton == ButtonState::PRESSED)
-			std::cout << mouse_state.x << " " << mouse_state.y << std::endl;
 
 		//if (kb_tracker.pressed.A)
 		//	std::cout << "key A pressed" << std::endl;
 
-		if (kb_state.Q)
-			viewerRot.y += deltaTime;
-		
-		if (kb_state.E)
-			viewerRot.y -= deltaTime;
-
-		if (kb_state.Z)
-			viewerRot.x += deltaTime;
-
-		if (kb_state.X)
-			viewerRot.x -= deltaTime;
 
 		Vector3 viewerForward = Vector3::Transform(-Vector3::UnitZ, Matrix::CreateFromYawPitchRoll(viewerRot));
 		Vector3 viewerUp = Vector3::Transform(Vector3::UnitY, Matrix::CreateFromYawPitchRoll(viewerRot));
@@ -212,6 +214,8 @@ int main()
 
 		if (kb_state.C)
 			viewerPos -= viewerUp * deltaTime;
+
+
 
 
 		// create view, projection matrix
@@ -278,7 +282,7 @@ int main()
 		ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
 		ImGui::Text("delta time: %f", ImGui::GetIO().DeltaTime);
 		ImGui::DragFloat3("viewerRot", reinterpret_cast<float*>(&viewerRot));
-		ImGui::DragInt("Select MeshPrimitive number", &primitiveIdx, 0.1F, 0, meshPrimitives.size() - 1);
+		ImGui::DragInt("Select MeshPrimitive number", &primitiveIdx, 0.1F, 0, (UINT)meshPrimitives.size() - 1);
 		ImGui::End();
 
 		ImGui::Render();
