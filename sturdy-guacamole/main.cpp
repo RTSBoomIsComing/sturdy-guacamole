@@ -192,10 +192,9 @@ int main()
 		//if (kb_tracker.pressed.A)
 		//	std::cout << "key A pressed" << std::endl;
 
-
-		Vector3 viewerForward = Vector3::Transform(-Vector3::UnitZ, Matrix::CreateFromYawPitchRoll(viewerRot));
-		Vector3 viewerUp = Vector3::Transform(Vector3::UnitY, Matrix::CreateFromYawPitchRoll(viewerRot));
-		Vector3 viewerRight = Vector3::Transform(Vector3::UnitX, Matrix::CreateFromYawPitchRoll(viewerRot));
+		Vector3 viewerForward = Vector3::Transform(Vector3::Forward, Matrix::CreateFromYawPitchRoll(viewerRot));
+		Vector3 viewerUp = Vector3::Transform(Vector3::Up, Matrix::CreateFromYawPitchRoll(viewerRot));
+		Vector3 viewerRight = Vector3::Transform(Vector3::Right, Matrix::CreateFromYawPitchRoll(viewerRot));
 
 		if (kb_state.W)
 			viewerPos += viewerForward * deltaTime;
