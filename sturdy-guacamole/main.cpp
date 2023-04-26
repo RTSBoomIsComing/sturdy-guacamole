@@ -41,6 +41,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 bool LoadModel(tinygltf::Model* model, const char* filename);
 int main()
 {
+	using namespace DirectX::SimpleMath;
+
 	// Initialize win32 application singleton instance
 	sturdy_guacamole::Win32Application win32App{};
 
@@ -95,9 +97,10 @@ int main()
 
 	// tiny_gltf loader
 	tinygltf::Model model;
+	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Triangle\\glTF\\Triangle.gltf"
-	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf" };
+	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf" };
 	bool res = LoadModel(&model, gltfPath.string().data());
 	if (res == false)
 		throw std::runtime_error("failed to load gltf");
@@ -105,7 +108,6 @@ int main()
 	// create vector of MeshPrimitive
 	std::vector<sturdy_guacamole::MeshPrimitive> meshPrimitives{};
 
-	auto& defaultScene = model.scenes[model.defaultScene];
 	for (const auto& mesh : model.meshes)
 	{
 		// process primitive and render it
@@ -121,48 +123,27 @@ int main()
 
 	// Test end
 
-	// create view, projection matrix
-	using namespace DirectX::SimpleMath;
-	Vector3 viewerPos{ 0.0f, 0.0f, 5.0f };
-	Matrix viewMatrix = Matrix::CreateLookAt(viewerPos, Vector3::Zero, Vector3::UnitY);
-	Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
-		DirectX::XMConvertToRadians(90.0f), 1280.0f / 960.0f, 0.1f, 100.0f);
-	
-	sturdy_guacamole::CommonConstants commonConstants{};
-	commonConstants.ViewMatrix = viewMatrix;
-	commonConstants.ProjMatrix = projMatrix;
-	commonConstants.ViewProjMatrix = (viewMatrix * projMatrix);
-	commonConstants.ViewerPos = Vector4{ viewerPos };
+	Vector3 viewerPos{ 0.0f, 0.0f, 1.0f };
+	Vector3 viewerRot{ 0.0f, 0.0f, 0.0f };
 
 	// Create common constant buffer
-	CD3D11_BUFFER_DESC commonConstantBufferDesc{ sizeof(commonConstants), D3D11_BIND_CONSTANT_BUFFER };
-	D3D11_SUBRESOURCE_DATA initialData{};
-	initialData.pSysMem = &commonConstants;
+	CD3D11_BUFFER_DESC bufferDesc{ sizeof(sturdy_guacamole::CommonConstants), D3D11_BIND_CONSTANT_BUFFER,
+		D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE };
 
 	ComPtr<ID3D11Buffer> commonConstantBuffer;
-	HRESULT hr = g_pDevice->CreateBuffer(&commonConstantBufferDesc, &initialData, &commonConstantBuffer);
+	HRESULT hr = g_pDevice->CreateBuffer(&bufferDesc, nullptr, &commonConstantBuffer);
 	if (FAILED(hr))
 		throw hr;
 
 	// Create mesh constant buffer
 	sturdy_guacamole::MeshConstants meshConstants{};
 
-	CD3D11_BUFFER_DESC meshConstantBufferDesc{ sizeof(meshConstants), D3D11_BIND_CONSTANT_BUFFER };
-	initialData = {};
-	initialData.pSysMem = &meshConstants;
+	bufferDesc.ByteWidth = sizeof(meshConstants);
+
 	ComPtr<ID3D11Buffer> meshConstantBuffer;
-	hr = g_pDevice->CreateBuffer(&meshConstantBufferDesc, &initialData, &meshConstantBuffer);
+	hr = g_pDevice->CreateBuffer(&bufferDesc, nullptr, &meshConstantBuffer);
 	if (FAILED(hr))
 		throw hr;
-
-	// Set constant buffer
-	ID3D11Buffer* pConstantBuffers[]
-	{
-		meshConstantBuffer.Get(),
-		commonConstantBuffer.Get(),
-	};
-	g_pDeviceContext->VSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
-	
 
 	// Main message loop
 	bool quit{};
@@ -181,6 +162,10 @@ int main()
 			break;
 
 		// Run game code here
+		float deltaTime = ImGui::GetIO().DeltaTime;
+
+
+		// Process keyboard and mouse inputs
 		using ButtonState = DirectX::Mouse::ButtonStateTracker::ButtonState;
 		auto mouse_state = mouse->GetState();
 		mouse_tracker.Update(mouse_state);
@@ -189,13 +174,81 @@ int main()
 		kb_tracker.Update(kb_state);
 
 		if (mouse_tracker.leftButton == ButtonState::PRESSED)
-			std::cout << "left button pressed" << std::endl;
+			std::cout << mouse_state.x << " " << mouse_state.y << std::endl;
 
-		if (kb_tracker.pressed.A)
-			std::cout << "key A pressed" << std::endl;
+		//if (kb_tracker.pressed.A)
+		//	std::cout << "key A pressed" << std::endl;
+
+		if (kb_state.Q)
+			viewerRot.y += deltaTime;
+		
+		if (kb_state.E)
+			viewerRot.y -= deltaTime;
+
+		if (kb_state.Z)
+			viewerRot.x += deltaTime;
+
+		if (kb_state.X)
+			viewerRot.x -= deltaTime;
+
+		Vector3 viewerForward = Vector3::Transform(-Vector3::UnitZ, Matrix::CreateFromYawPitchRoll(viewerRot));
+		Vector3 viewerUp = Vector3::Transform(Vector3::UnitY, Matrix::CreateFromYawPitchRoll(viewerRot));
+		Vector3 viewerRight = Vector3::Transform(Vector3::UnitX, Matrix::CreateFromYawPitchRoll(viewerRot));
+
+		if (kb_state.W)
+			viewerPos += viewerForward * deltaTime;
+
+		if (kb_state.S)
+			viewerPos -= viewerForward * deltaTime;
+
+		if (kb_state.A)
+			viewerPos -= viewerRight * deltaTime;
+
+		if (kb_state.D)
+			viewerPos += viewerRight * deltaTime;
+
+		if (kb_state.Space)
+			viewerPos += viewerUp * deltaTime;
+
+		if (kb_state.C)
+			viewerPos -= viewerUp * deltaTime;
+
+
+		// create view, projection matrix
+		//Matrix viewMatrix = Matrix::CreateLookAt(viewerPos, Vector3::Zero, Vector3::UnitY);
+		Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);
+		Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
+			DirectX::XMConvertToRadians(90.0f), 1280.0f / 960.0f, 0.1f, 100.0f);
+
+		sturdy_guacamole::CommonConstants commonConstants{};
+		commonConstants.ViewerPos = Vector4{ viewerPos };
+		commonConstants.ViewMatrix = viewMatrix;
+		commonConstants.ProjMatrix = projMatrix;
+		commonConstants.ViewProjMatrix = (viewMatrix * projMatrix);
 
 		// Start rendering
-		
+
+		D3D11_MAPPED_SUBRESOURCE mappedResource{};
+		g_pDeviceContext->Map(meshConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		::memcpy(mappedResource.pData, &meshConstants, sizeof(meshConstants));
+		g_pDeviceContext->Unmap(meshConstantBuffer.Get(), 0);
+
+		mappedResource = {};
+		g_pDeviceContext->Map(commonConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		::memcpy(mappedResource.pData, &commonConstants, sizeof(commonConstants));
+		g_pDeviceContext->Unmap(commonConstantBuffer.Get(), 0);
+
+
+
+		// Set constant buffer
+		ID3D11Buffer* pConstantBuffers[]
+		{
+			meshConstantBuffer.Get(),
+			commonConstantBuffer.Get(),
+		};
+		g_pDeviceContext->VSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
+
+
 		// Clear the back buffer
 		ID3D11RenderTargetView* ppRenderTargetViews[]
 		{
@@ -206,12 +259,15 @@ int main()
 
 
 		// Set pipeline state
-		
+
 		// Rendering
-		for (const auto& meshPrimitive : meshPrimitives)
-		{
-			meshPrimitive.Draw(g_pDeviceContext);
-		}
+		//for (const auto& meshPrimitive : meshPrimitives)
+		//{
+		//	meshPrimitive.Draw(g_pDeviceContext);
+		//}
+
+		static int primitiveIdx{};
+		meshPrimitives[primitiveIdx].Draw(g_pDeviceContext);
 
 		// Start the Dear ImGui frame
 		imguiApp.NewFrame();
@@ -221,6 +277,8 @@ int main()
 		ImGui::Text("Hello world!");
 		ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
 		ImGui::Text("delta time: %f", ImGui::GetIO().DeltaTime);
+		ImGui::DragFloat3("viewerRot", reinterpret_cast<float*>(&viewerRot));
+		ImGui::DragInt("Select MeshPrimitive number", &primitiveIdx, 0.1F, 0, meshPrimitives.size() - 1);
 		ImGui::End();
 
 		ImGui::Render();
