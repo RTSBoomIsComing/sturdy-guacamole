@@ -135,6 +135,7 @@
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImguiApplication.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshPrimitive.cpp" />
     <ClCompile Include="SceneNode.cpp" />
     <ClCompile Include="Win32Application.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="Dx11Application.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImguiApplication.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshPrimitive.h" />
     <ClInclude Include="SceneNode.h" />
     <ClInclude Include="Singleton.h" />

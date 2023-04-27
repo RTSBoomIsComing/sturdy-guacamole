@@ -4,6 +4,7 @@
 #include "Graphics.h"
 
 // include my glTF to DirectX11 converter libraries
+#include "Mesh.h"
 #include "MeshPrimitive.h"
 #include "SceneNode.h"
 #include "ConstantBuffers.h"
@@ -109,6 +110,13 @@ int main()
 	if (res == false)
 		throw std::runtime_error("failed to load gltf");
 
+	// create vector of MeshPrimitive
+	std::vector<std::shared_ptr<sturdy_guacamole::Mesh>> meshes{};
+	for (const auto& mesh : model.meshes)
+	{
+		meshes.push_back(std::make_shared<sturdy_guacamole::Mesh>(model, mesh));
+	}
+
 
 	std::vector<sturdy_guacamole::SceneNode> sceneNodes{};
 
@@ -118,33 +126,34 @@ int main()
 		std::cout << "node name: " << node.name << std::endl;
 		sturdy_guacamole::SceneNode sceneNode{};
 
+		Matrix localTransform{}; // Identity matrix
 		for (size_t i{}; i < node.matrix.size(); i++)
 		{
-			sceneNode.m_globalTransform.m[i / 4][i % 4] = static_cast<float>(node.matrix[i]);
+			localTransform.m[i / 4][i % 4] = static_cast<float>(node.matrix[i]);
 		}
 		if (node.scale.size() > 0)
-			sceneNode.m_globalTransform *= Matrix::CreateScale(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2]));
-		
-		if (node.rotation.size() > 0)
-			sceneNode.m_globalTransform *= Matrix::CreateFromQuaternion(Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
-	
-		if (node.translation.size() > 0)
-			sceneNode.m_globalTransform *= Matrix::CreateTranslation(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2]));
-		
-		sceneNode.m_globalTransform = parentGlobalTransform * sceneNode.m_globalTransform;
-		sceneNodes.push_back(sceneNode);
+			localTransform *= Matrix::CreateScale(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2]));
 
-		if (static_cast<size_t>(node.mesh) < model.meshes.size())
+		if (node.rotation.size() > 0)
+			localTransform *= Matrix::CreateFromQuaternion(Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
+
+		if (node.translation.size() > 0)
+			localTransform *= Matrix::CreateTranslation(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2]));
+
+		sceneNode.m_globalTransform = parentGlobalTransform * localTransform;
+
+		size_t meshIdx = static_cast<size_t>(node.mesh);
+		if (meshIdx < model.meshes.size())
 		{
-			const auto& mesh = model.meshes[node.mesh];
-			std::cout << "mesh name: " << mesh.name << std::endl;
+			sceneNode.m_mesh = meshes[meshIdx];
 		}
 
-		return sceneNode;
+		sceneNodes.push_back(sceneNode);
+		return sceneNodes.back();
 	};
 
 	std::function<void(const tinygltf::Node&, const Matrix&)> traverseNode{};
-	traverseNode = [&](const tinygltf::Node& node, const Matrix& parentGlobalTransform)
+	traverseNode = [&](const tinygltf::Node& node, const Matrix parentGlobalTransform)
 	{
 		// process node
 		const auto& currSceneNode = processElements(node, parentGlobalTransform);
@@ -163,21 +172,6 @@ int main()
 		assert(static_cast<size_t>(rootNode) < model.nodes.size());
 
 		traverseNode(model.nodes[rootNode], Matrix::Identity);
-	}
-
-	// create vector of MeshPrimitive
-	std::vector<sturdy_guacamole::MeshPrimitive> meshPrimitives{};
-	for (const auto& mesh : model.meshes)
-	{
-		// process primitive and render it
-		for (const auto& primitive : mesh.primitives)
-		{
-			meshPrimitives.emplace_back(model, primitive);
-
-			// Set the input layout
-			// g_pDeviceContext->IASetInputLayout(inputLayout.Get());
-
-		}
 	}
 
 	// Test end
@@ -280,7 +274,7 @@ int main()
 		g_pDeviceContext->OMSetRenderTargets(ARRAYSIZE(ppRenderTargetViews), ppRenderTargetViews, nullptr);
 		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView, clear_color);
 
-		
+
 
 		// create view, projection matrix
 		//Matrix viewMatrix = Matrix::CreateLookAt(viewerPos, Vector3::Zero, Vector3::UnitY);
@@ -316,29 +310,26 @@ int main()
 
 
 
-		// Set pipeline state
-		static int primitiveIdx{};
-		
+
 
 		for (const auto& sceneNode : sceneNodes)
 		{
 			// Create mesh constants
 			sturdy_guacamole::MeshConstants meshConstants{ sceneNode.m_globalTransform };
-			
+
 			D3D11_MAPPED_SUBRESOURCE mappedResource{};
 			g_pDeviceContext->Map(meshConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 			::memcpy(mappedResource.pData, &meshConstants, sizeof(meshConstants));
 			g_pDeviceContext->Unmap(meshConstantBuffer.Get(), 0);
 
-			meshPrimitives[primitiveIdx].Draw(g_pDeviceContext);
+			if (sceneNode.m_mesh)
+			{
+				for (const auto& primitive : sceneNode.m_mesh->m_meshPrimitives)
+				{
+					primitive->Draw(g_pDeviceContext);
+				}
+			}
 		}
-
-		// Rendering
-		//for (const auto& meshPrimitive : meshPrimitives)
-		//{
-		//	meshPrimitive.Draw(g_pDeviceContext);
-		//}
-
 
 		// Start the Dear ImGui frame
 		imguiApp.NewFrame();
@@ -349,7 +340,6 @@ int main()
 		ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
 		ImGui::Text("delta time: %f", ImGui::GetIO().DeltaTime);
 		ImGui::DragFloat3("viewerRot", reinterpret_cast<float*>(&viewerRot));
-		ImGui::DragInt("Select MeshPrimitive number", &primitiveIdx, 0.1F, 0, (UINT)meshPrimitives.size() - 1);
 		ImGui::End();
 
 		ImGui::Render();

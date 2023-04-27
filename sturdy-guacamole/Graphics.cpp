@@ -26,7 +26,7 @@ sturdy_guacamole::Graphics::Graphics()
 
 	ComPtr<ID3D11RasterizerState> rasterizerState;
 	D3D11_RASTERIZER_DESC rasterizerDesc{};
-	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
 	rasterizerDesc.CullMode = D3D11_CULL_BACK;
 	rasterizerDesc.FrontCounterClockwise = TRUE;
 
