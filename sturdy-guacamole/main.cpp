@@ -69,13 +69,11 @@ int main()
 	std::unique_ptr<DirectX::Keyboard> keyboard = std::make_unique<DirectX::Keyboard>();
 	DirectX::Keyboard::KeyboardStateTracker kb_tracker;
 
-	// Test code
-
 	// Initialize Graphics singleton instance
 	sturdy_guacamole::Graphics gfx{};
 
-
-
+	// Test code
+	
 	// tiny_gltf loader
 	tinygltf::Model model;
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
@@ -99,32 +97,7 @@ int main()
 	auto processElements = [&](const tinygltf::Node& node, const Matrix& parentGlobalTransform)
 		-> const sturdy_guacamole::SceneNode&
 	{
-		std::cout << "node name: " << node.name << std::endl;
-		sturdy_guacamole::SceneNode sceneNode{};
-
-		Matrix localTransform{}; // Identity matrix
-		for (size_t i{}; i < node.matrix.size(); i++)
-		{
-			localTransform.m[i / 4][i % 4] = static_cast<float>(node.matrix[i]);
-		}
-		if (node.scale.size() > 0)
-			localTransform *= Matrix::CreateScale(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2]));
-
-		if (node.rotation.size() > 0)
-			localTransform *= Matrix::CreateFromQuaternion(Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
-
-		if (node.translation.size() > 0)
-			localTransform *= Matrix::CreateTranslation(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2]));
-
-		sceneNode.m_globalTransform = parentGlobalTransform * localTransform;
-
-		size_t meshIdx = static_cast<size_t>(node.mesh);
-		if (meshIdx < model.meshes.size())
-		{
-			sceneNode.m_mesh = meshes[meshIdx];
-		}
-
-		sceneNodes.push_back(sceneNode);
+		sceneNodes.emplace_back(node, meshes, parentGlobalTransform);
 		return sceneNodes.back();
 	};
 

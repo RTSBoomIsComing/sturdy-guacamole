@@ -1,4 +1,7 @@
 #pragma once
+#include "MeshPrimitive.h"
+
+#include <string>
 #include <vector>
 #include <memory>
 
@@ -16,7 +19,9 @@ namespace sturdy_guacamole
 		Mesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh);
 		~Mesh() = default;
 
+		std::string m_name{};
+
 		// meshPrimitive never be shared
-		std::vector<std::unique_ptr<class MeshPrimitive>> m_meshPrimitives{};
+		std::vector<std::unique_ptr<MeshPrimitive>> m_meshPrimitives{};
 	};
 }
