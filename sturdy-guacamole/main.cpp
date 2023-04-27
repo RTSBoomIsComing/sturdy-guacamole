@@ -74,31 +74,7 @@ int main()
 	// Initialize Graphics singleton instance
 	sturdy_guacamole::Graphics gfx{};
 
-	// Create Texture2D for RenderTarget
-	CD3D11_TEXTURE2D_DESC textureDesc{ DXGI_FORMAT_R16G16B16A16_FLOAT, 1280, 960, 1, 0,
-		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE };
 
-	ComPtr<ID3D11Texture2D> renderTarget;
-	g_pDevice->CreateTexture2D(&textureDesc, nullptr, &renderTarget);
-
-	// Create RenderTargetView
-	ComPtr<ID3D11RenderTargetView> renderTargetView;
-	g_pDevice->CreateRenderTargetView(renderTarget.Get(), nullptr, &renderTargetView);
-
-	// Create ShaderResourceView
-	ComPtr<ID3D11ShaderResourceView> shaderResourceView;
-	g_pDevice->CreateShaderResourceView(renderTarget.Get(), nullptr, &shaderResourceView);
-
-	// Set the render target
-	g_pDeviceContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), nullptr);
-
-	// clear the render target
-	const float clear_color[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
-	g_pDeviceContext->ClearRenderTargetView(renderTargetView.Get(), clear_color);
-
-	// Set the viewport
-	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, float(1280), float(960) };
-	g_pDeviceContext->RSSetViewports(1, &viewport);
 
 	// tiny_gltf loader
 	tinygltf::Model model;
@@ -153,7 +129,7 @@ int main()
 	};
 
 	std::function<void(const tinygltf::Node&, const Matrix&)> traverseNode{};
-	traverseNode = [&](const tinygltf::Node& node, const Matrix parentGlobalTransform)
+	traverseNode = [&](const tinygltf::Node& node, const Matrix& parentGlobalTransform)
 	{
 		// process node
 		const auto& currSceneNode = processElements(node, parentGlobalTransform);
@@ -272,6 +248,7 @@ int main()
 			g_pRenderTargetView
 		};
 		g_pDeviceContext->OMSetRenderTargets(ARRAYSIZE(ppRenderTargetViews), ppRenderTargetViews, nullptr);
+		float clear_color[]{ 0.0f, 0.2f, 0.4f, 1.0f };
 		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView, clear_color);
 
 

@@ -41,6 +41,10 @@ sturdy_guacamole::Graphics::Graphics()
 
 	// Set the pixel shader
 	g_pDeviceContext->PSSetShader(pixelShader.Get(), nullptr, 0);
+
+	// Set the viewport
+	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, float(1280), float(960) };
+	g_pDeviceContext->RSSetViewports(1, &viewport);
 }
 
 void sturdy_guacamole::Graphics::ThrowIfFailed(HRESULT hr, ID3DBlob* errorBlob)
