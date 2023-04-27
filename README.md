@@ -6,7 +6,7 @@ I want to test if DirectX 11, a graphics library, and the 3D file format glTF wo
 ## Coordinate system
 We are using a right-handed coordinate system because glTF uses a right-handed coordinate system.
 
-## 외부 라이브러리와 vcpkg
+## external libraries and vcpkg
 We are using vcpkg as our package manager program.
 
 I considered including the vcpkg manifest file (vcpkg.json) in the project, but it seems to make things more complicated instead. 
