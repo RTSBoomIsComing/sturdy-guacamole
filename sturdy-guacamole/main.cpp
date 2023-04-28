@@ -1,11 +1,12 @@
 #include "Win32Application.h"
 #include "ImguiApplication.h"
 #include "Dx11Application.h"
+
 #include "Graphics.h"
+#include "ConstantBuffers.h"
 
 // include my glTF to DirectX11 converter libraries
 #include "GLTFModel.h"
-#include "ConstantBuffers.h"
 
 // Include tiny_gltf
 #pragma warning( disable : 4996 )
@@ -41,7 +42,7 @@ namespace sturdy_guacamole
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 extern IMGUI_IMPL_API void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-bool LoadModel(tinygltf::Model* model, const char* filename);
+
 int main()
 {
 	using namespace DirectX::SimpleMath;
@@ -72,19 +73,12 @@ int main()
 
 	// Test code
 
-	// tiny_gltf loader
-	tinygltf::Model model;
+
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Triangle\\glTF\\Triangle.gltf"
 	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf" };
-	bool res = LoadModel(&model, gltfPath.string().data());
-	if (res == false)
-		throw std::runtime_error("failed to load gltf");
-
-
-
-	sturdy_guacamole::GLTFModel gltfModel{ model };
+	sturdy_guacamole::GLTFModel gltfModel{ gltfPath };
 
 	Vector3 viewerPos{ 0.0f, 0.0f, 1.0f };
 	Vector3 viewerRot{ 0.0f, 0.0f, 0.0f };
@@ -329,26 +323,4 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return MA_ACTIVATEANDEAT;
 	}
 	return ::DefWindowProcW(hWnd, msg, wParam, lParam);
-}
-
-bool LoadModel(tinygltf::Model* model, const char* filename) {
-	tinygltf::TinyGLTF loader;
-	std::string err;
-	std::string warn;
-
-	bool res = loader.LoadASCIIFromFile(model, &err, &warn, filename);
-	if (!warn.empty()) {
-		std::cout << "WARN: " << warn << std::endl;
-	}
-
-	if (!err.empty()) {
-		std::cout << "ERR: " << err << std::endl;
-	}
-
-	if (!res)
-		std::cout << "Failed to load glTF: " << filename << std::endl;
-	else
-		std::cout << "Loaded glTF: " << filename << std::endl;
-
-	return res;
 }
