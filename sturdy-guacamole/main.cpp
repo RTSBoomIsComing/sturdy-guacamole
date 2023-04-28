@@ -8,16 +8,7 @@
 // include my glTF to DirectX11 converter libraries
 #include "GLTFModel.h"
 
-// Include tiny_gltf
-#pragma warning( disable : 4996 )
-#undef min
-#undef max
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define TINYGLTF_NOEXCEPTION
-#define JSON_NOEXCEPTION
-#include <tiny_gltf.h>
+
 
 // Include DirectX Tool Kit
 #include <directxtk/SimpleMath.h>
@@ -175,7 +166,7 @@ int main()
 			g_pRenderTargetView
 		};
 		g_pDeviceContext->OMSetRenderTargets(ARRAYSIZE(ppRenderTargetViews), ppRenderTargetViews, nullptr);
-	
+
 		float clear_color[]{ 0.0f, 0.2f, 0.4f, 1.0f };
 		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView, clear_color);
 
@@ -210,14 +201,14 @@ int main()
 		// Start rendering
 		for (const auto& scene : gltfModel.m_scenes)
 		{
-			for (const auto& sceneRoot : scene.m_sceneRoots)
+			for (const auto& dfsList : scene.m_dfsLists)
 			{
-				for (const auto& sceneNode : sceneRoot.m_dfsList)
+				for (const auto& dfsNode : dfsList)
 				{
 					// Create mesh constants
 					sturdy_guacamole::MeshConstants meshConstants = {
-							sceneNode->m_globalTransform,
-							sceneNode->m_globalTransform.Invert().Transpose()
+							dfsNode.m_globalTransform,
+							dfsNode.m_globalTransform.Invert().Transpose()
 					};
 
 					// Update mesh constant buffer
@@ -225,9 +216,9 @@ int main()
 					g_pDeviceContext->Map(meshConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 					::memcpy(mappedResource.pData, &meshConstants, sizeof(meshConstants));
 					g_pDeviceContext->Unmap(meshConstantBuffer.Get(), 0);
-					if (sceneNode->m_mesh)
+					if (dfsNode.m_node->m_mesh)
 					{
-						for (const auto& primitive : sceneNode->m_mesh->m_meshPrimitives)
+						for (const auto& primitive : dfsNode.m_node->m_mesh->m_meshPrimitives)
 						{
 							primitive.Draw(g_pDeviceContext);
 						}
