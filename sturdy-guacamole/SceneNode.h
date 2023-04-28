@@ -21,7 +21,7 @@ namespace sturdy_guacamole
 	class SceneNode
 	{
 	public:
-		SceneNode(const tinygltf::Node& node, std::shared_ptr<SceneNode> parent, const std::vector<Mesh>& meshes);
+		SceneNode(const tinygltf::Node& node, std::shared_ptr<SceneNode> parent);
 		~SceneNode() = default;
 
 		std::string m_name{};

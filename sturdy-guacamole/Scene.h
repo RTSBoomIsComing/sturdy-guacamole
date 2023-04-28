@@ -13,12 +13,10 @@ namespace tinygltf
 
 namespace sturdy_guacamole
 {
-	class Mesh;
-
 	class Scene
 	{
 	public:
-		Scene(const tinygltf::Scene& scene, const tinygltf::Model& model, const std::vector<Mesh>& meshes);
+		Scene(const tinygltf::Scene& scene, const tinygltf::Model& model);
 		~Scene() = default;
 
 		std::string m_name{};
