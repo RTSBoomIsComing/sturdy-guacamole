@@ -21,7 +21,6 @@ namespace sturdy_guacamole
 
 		std::string m_name{};
 
-		// meshPrimitive never be shared
-		std::vector<std::unique_ptr<MeshPrimitive>> m_meshPrimitives{};
+		std::vector<MeshPrimitive> m_meshPrimitives{};
 	};
 }

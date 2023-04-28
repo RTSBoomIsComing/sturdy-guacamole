@@ -4,9 +4,7 @@
 #include "Graphics.h"
 
 // include my glTF to DirectX11 converter libraries
-#include "Mesh.h"
-#include "MeshPrimitive.h"
-#include "Scene.h"
+#include "GLTFModel.h"
 #include "ConstantBuffers.h"
 
 // Include tiny_gltf
@@ -84,20 +82,9 @@ int main()
 	if (res == false)
 		throw std::runtime_error("failed to load gltf");
 
-	// create vector of MeshPrimitive
-	std::vector<std::shared_ptr<sturdy_guacamole::Mesh>> meshes{};
-	for (const auto& mesh : model.meshes)
-	{
-		meshes.push_back(std::make_shared<sturdy_guacamole::Mesh>(model, mesh));
-	}
 
-	std::vector<sturdy_guacamole::Scene> scenes{};
-	for (const auto& scene : model.scenes)
-	{
-		scenes.push_back(sturdy_guacamole::Scene{ scene, model, meshes });
-	}
 
-	// Test end
+	sturdy_guacamole::GLTFModel gltfModel{ model };
 
 	Vector3 viewerPos{ 0.0f, 0.0f, 1.0f };
 	Vector3 viewerRot{ 0.0f, 0.0f, 0.0f };
@@ -190,18 +177,17 @@ int main()
 
 
 		// Clear the back buffer
-		ID3D11RenderTargetView* ppRenderTargetViews[]
-		{
+		ID3D11RenderTargetView* ppRenderTargetViews[] = {
 			g_pRenderTargetView
 		};
 		g_pDeviceContext->OMSetRenderTargets(ARRAYSIZE(ppRenderTargetViews), ppRenderTargetViews, nullptr);
+	
 		float clear_color[]{ 0.0f, 0.2f, 0.4f, 1.0f };
 		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView, clear_color);
 
 
 
 		// create view, projection matrix
-		//Matrix viewMatrix = Matrix::CreateLookAt(viewerPos, Vector3::Zero, Vector3::UnitY);
 		Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);
 		Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
 			DirectX::XMConvertToRadians(90.0f), 1280.0f / 960.0f, 0.1f, 100.0f);
@@ -212,10 +198,7 @@ int main()
 		commonConstants.ProjMatrix = projMatrix;
 		commonConstants.ViewProjMatrix = (viewMatrix * projMatrix);
 
-		// Start rendering
-
-
-
+		// Update common constant buffer
 		D3D11_MAPPED_SUBRESOURCE mappedResource{};
 		g_pDeviceContext->Map(commonConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		::memcpy(mappedResource.pData, &commonConstants, sizeof(commonConstants));
@@ -223,17 +206,15 @@ int main()
 
 
 
-		// Set constant buffer
-		ID3D11Buffer* pConstantBuffers[]
-		{
+		//  Set constant buffer
+		ID3D11Buffer* pConstantBuffers[] = {
 			meshConstantBuffer.Get(),
 			commonConstantBuffer.Get(),
 		};
 		g_pDeviceContext->VSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
 
-
-
-		for (const auto& scene : scenes)
+		// Start rendering
+		for (const auto& scene : gltfModel.m_scenes)
 		{
 			for (const auto& sceneRoot : scene.m_sceneRoots)
 			{
@@ -244,6 +225,8 @@ int main()
 							sceneNode->m_globalTransform,
 							sceneNode->m_globalTransform.Invert().Transpose()
 					};
+
+					// Update mesh constant buffer
 					D3D11_MAPPED_SUBRESOURCE mappedResource{};
 					g_pDeviceContext->Map(meshConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 					::memcpy(mappedResource.pData, &meshConstants, sizeof(meshConstants));
@@ -252,7 +235,7 @@ int main()
 					{
 						for (const auto& primitive : sceneNode->m_mesh->m_meshPrimitives)
 						{
-							primitive->Draw(g_pDeviceContext);
+							primitive.Draw(g_pDeviceContext);
 						}
 					}
 				}

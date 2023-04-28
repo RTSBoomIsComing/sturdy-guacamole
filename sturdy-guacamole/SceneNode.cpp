@@ -3,7 +3,7 @@
 
 #include <tiny_gltf.h>
 
-sturdy_guacamole::SceneNode::SceneNode(const tinygltf::Node& node, std::shared_ptr<SceneNode> parent, const std::vector<std::shared_ptr<Mesh>>& meshes)
+sturdy_guacamole::SceneNode::SceneNode(const tinygltf::Node& node, std::shared_ptr<SceneNode> parent, const std::vector<Mesh>& meshes)
 	: m_name{ node.name }, m_parent{ std::move(parent) }
 {
 	using namespace DirectX::SimpleMath;
@@ -29,7 +29,7 @@ sturdy_guacamole::SceneNode::SceneNode(const tinygltf::Node& node, std::shared_p
 	size_t meshIdx = static_cast<size_t>(node.mesh);
 	if (meshIdx < meshes.size())
 	{
-		m_mesh = meshes[meshIdx];
+		m_mesh = &meshes[meshIdx];
 	}
 }
 

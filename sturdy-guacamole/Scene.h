@@ -18,7 +18,7 @@ namespace sturdy_guacamole
 	class Scene
 	{
 	public:
-		Scene(const tinygltf::Scene& scene, const tinygltf::Model& model, const std::vector<std::shared_ptr<Mesh>>& meshes);
+		Scene(const tinygltf::Scene& scene, const tinygltf::Model& model, const std::vector<Mesh>& meshes);
 		~Scene() = default;
 
 		std::string m_name{};

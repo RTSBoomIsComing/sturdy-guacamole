@@ -2,12 +2,12 @@
 #include "Mesh.h"
 
 #include <tiny_gltf.h>
-sturdy_guacamole::SceneRoot::SceneRoot(const tinygltf::Node& node, const tinygltf::Model& model, const std::vector<std::shared_ptr<Mesh>>& meshes)
+sturdy_guacamole::SceneRoot::SceneRoot(const tinygltf::Node& node, const tinygltf::Model& model, const std::vector<Mesh>& meshes)
 {
 	DFS(node, model, nullptr, meshes);
 }
 
-void sturdy_guacamole::SceneRoot::DFS(const tinygltf::Node& node, const tinygltf::Model& model, std::shared_ptr<SceneNode> parent, const std::vector<std::shared_ptr<Mesh>>& meshes)
+void sturdy_guacamole::SceneRoot::DFS(const tinygltf::Node& node, const tinygltf::Model& model, std::shared_ptr<SceneNode> parent, const std::vector<Mesh>& meshes)
 {
 	// process node
 	auto currSceneNode = make_shared<SceneNode>(node, parent, meshes);

@@ -7,6 +7,6 @@ sturdy_guacamole::Mesh::Mesh(const tinygltf::Model& model, const tinygltf::Mesh&
 {
 	for (const auto& primitive : mesh.primitives)
 	{
-		m_meshPrimitives.push_back(std::make_unique<MeshPrimitive>(model, primitive));
+		m_meshPrimitives.push_back(MeshPrimitive(model, primitive));
 	}
 }
