@@ -6,7 +6,7 @@
 // include my glTF to DirectX11 converter libraries
 #include "Mesh.h"
 #include "MeshPrimitive.h"
-#include "SceneNode.h"
+#include "Scene.h"
 #include "ConstantBuffers.h"
 
 // Include tiny_gltf
@@ -73,7 +73,7 @@ int main()
 	sturdy_guacamole::Graphics gfx{};
 
 	// Test code
-	
+
 	// tiny_gltf loader
 	tinygltf::Model model;
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
@@ -91,36 +91,10 @@ int main()
 		meshes.push_back(std::make_shared<sturdy_guacamole::Mesh>(model, mesh));
 	}
 
-
-	std::vector<sturdy_guacamole::SceneNode> sceneNodes{};
-
-	auto processElements = [&](const tinygltf::Node& node, const Matrix& parentGlobalTransform)
-		-> const sturdy_guacamole::SceneNode&
+	std::vector<sturdy_guacamole::Scene> scenes{};
+	for (const auto& scene : model.scenes)
 	{
-		sceneNodes.emplace_back(node, meshes, parentGlobalTransform);
-		return sceneNodes.back();
-	};
-
-	std::function<void(const tinygltf::Node&, const Matrix&)> traverseNode{};
-	traverseNode = [&](const tinygltf::Node& node, const Matrix& parentGlobalTransform)
-	{
-		// process node
-		const auto& currSceneNode = processElements(node, parentGlobalTransform);
-
-		// traverse child nodes
-		for (const auto& childNode : node.children)
-		{
-			assert(static_cast<size_t>(childNode) < model.nodes.size());
-			traverseNode(model.nodes[childNode], currSceneNode.m_globalTransform);
-		}
-	};
-
-	// scene graph traversal
-	for (const auto& rootNode : model.scenes[model.defaultScene].nodes)
-	{
-		assert(static_cast<size_t>(rootNode) < model.nodes.size());
-
-		traverseNode(model.nodes[rootNode], Matrix::Identity);
+		scenes.push_back(sturdy_guacamole::Scene{ scene, model, meshes });
 	}
 
 	// Test end
@@ -259,24 +233,28 @@ int main()
 
 
 
-
-
-
-		for (const auto& sceneNode : sceneNodes)
+		for (const auto& scene : scenes)
 		{
-			// Create mesh constants
-			sturdy_guacamole::MeshConstants meshConstants{ sceneNode.m_globalTransform };
-
-			D3D11_MAPPED_SUBRESOURCE mappedResource{};
-			g_pDeviceContext->Map(meshConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-			::memcpy(mappedResource.pData, &meshConstants, sizeof(meshConstants));
-			g_pDeviceContext->Unmap(meshConstantBuffer.Get(), 0);
-
-			if (sceneNode.m_mesh)
+			for (const auto& sceneRoot : scene.m_sceneRoots)
 			{
-				for (const auto& primitive : sceneNode.m_mesh->m_meshPrimitives)
+				for (const auto& sceneNode : sceneRoot.m_dfsList)
 				{
-					primitive->Draw(g_pDeviceContext);
+					// Create mesh constants
+					sturdy_guacamole::MeshConstants meshConstants = {
+							sceneNode->m_globalTransform,
+							sceneNode->m_globalTransform.Invert().Transpose()
+					};
+					D3D11_MAPPED_SUBRESOURCE mappedResource{};
+					g_pDeviceContext->Map(meshConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+					::memcpy(mappedResource.pData, &meshConstants, sizeof(meshConstants));
+					g_pDeviceContext->Unmap(meshConstantBuffer.Get(), 0);
+					if (sceneNode->m_mesh)
+					{
+						for (const auto& primitive : sceneNode->m_mesh->m_meshPrimitives)
+						{
+							primitive->Draw(g_pDeviceContext);
+						}
+					}
 				}
 			}
 		}

@@ -3,11 +3,12 @@
 
 #include <tiny_gltf.h>
 
-sturdy_guacamole::SceneNode::SceneNode(const tinygltf::Node& node, const std::vector<std::shared_ptr<Mesh>>& meshes, const DirectX::SimpleMath::Matrix& parentGlobalTransform)
-	: m_name{ node.name }
+sturdy_guacamole::SceneNode::SceneNode(const tinygltf::Node& node, std::shared_ptr<SceneNode> parent, const std::vector<std::shared_ptr<Mesh>>& meshes)
+	: m_name{ node.name }, m_parent{ std::move(parent) }
 {
 	using namespace DirectX::SimpleMath;
 	
+	Matrix parentGlobalTransform = (m_parent) ? m_parent->m_globalTransform : Matrix::Identity;
 	Matrix localTransform{}; // Identity matrix
 	for (size_t i{}; i < node.matrix.size(); i++)
 	{
@@ -24,9 +25,11 @@ sturdy_guacamole::SceneNode::SceneNode(const tinygltf::Node& node, const std::ve
 
 	m_globalTransform = parentGlobalTransform * localTransform;
 
+
 	size_t meshIdx = static_cast<size_t>(node.mesh);
 	if (meshIdx < meshes.size())
 	{
 		m_mesh = meshes[meshIdx];
 	}
 }
+
