@@ -1,8 +1,8 @@
-#include "Mesh.h"
+#include "GLTFMesh.h"
 
 #include <tiny_gltf.h>
 
-sturdy_guacamole::Mesh::Mesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh)
+sturdy_guacamole::GLTFMesh::GLTFMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh)
 	: m_name{ mesh.name }
 {
 	for (const auto& primitive : mesh.primitives)

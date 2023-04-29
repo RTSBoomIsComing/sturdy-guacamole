@@ -62,13 +62,12 @@ int main()
 	// Initialize Graphics singleton instance
 	sturdy_guacamole::Graphics gfx{};
 
-	// Test code
-
-
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Triangle\\glTF\\Triangle.gltf"
 	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf" };
+
+	// Load glTF model
 	sturdy_guacamole::GLTFModel gltfModel{ gltfPath };
 
 	Vector3 viewerPos{ 0.0f, 0.0f, 1.0f };
@@ -133,10 +132,6 @@ int main()
 
 		auto kb_state = keyboard->GetState();
 		kb_tracker.Update(kb_state);
-
-
-		//if (kb_tracker.pressed.A)
-		//	std::cout << "key A pressed" << std::endl;
 
 		Vector3 viewerForward = Vector3::Transform(Vector3::Forward, Matrix::CreateFromYawPitchRoll(viewerRot));
 		Vector3 viewerUp = Vector3::Transform(Vector3::Up, Matrix::CreateFromYawPitchRoll(viewerRot));

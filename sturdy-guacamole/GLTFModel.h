@@ -1,6 +1,6 @@
 #pragma once
 //#include "Scene.h"
-#include "Mesh.h"
+#include "GLTFMesh.h"
 #include "GLTFNode.h"
 #include "GLTFScene.h"
 
@@ -25,7 +25,7 @@ namespace sturdy_guacamole
 
 
 		std::vector<GLTFNode> m_nodes{};
-		std::vector<Mesh> m_meshes{};
+		std::vector<GLTFMesh> m_meshes{};
 		std::vector<GLTFScene> m_scenes{};
 
 	private:

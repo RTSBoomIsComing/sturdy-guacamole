@@ -11,7 +11,7 @@ namespace tinygltf
 namespace sturdy_guacamole
 {
 	class GLTFModel;
-	class Mesh;
+	class GLTFMesh;
 
 	class GLTFNode
 	{
@@ -21,7 +21,7 @@ namespace sturdy_guacamole
 		~GLTFNode() = default;
 
 		std::string m_name{};
-		const Mesh* m_mesh{};
+		const GLTFMesh* m_mesh{};
 		std::vector<const GLTFNode*> m_children{};
 		DirectX::SimpleMath::Vector3 m_scale{ 1.0f, 1.0f, 1.0f };
 		DirectX::SimpleMath::Quaternion m_rotation{};

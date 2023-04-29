@@ -13,11 +13,11 @@ namespace tinygltf
 
 namespace sturdy_guacamole
 {
-	class Mesh
+	class GLTFMesh
 	{
 	public:
-		Mesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh);
-		~Mesh() = default;
+		GLTFMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh);
+		~GLTFMesh() = default;
 
 		std::string m_name{};
 

@@ -37,7 +37,7 @@
     <ClCompile Include="MeshPrimitive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
+    <ClCompile Include="GLTFMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GLTFModel.cpp">
@@ -72,7 +72,7 @@
     <ClInclude Include="ConstantBuffers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
+    <ClInclude Include="GLTFMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GLTFModel.h">

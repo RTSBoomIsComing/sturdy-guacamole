@@ -26,7 +26,7 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 	m_meshes.reserve(tinyModel.meshes.size());
 	for (const auto& tinyMesh : tinyModel.meshes)
 	{
-		m_meshes.push_back(Mesh{ tinyModel, tinyMesh });
+		m_meshes.push_back(GLTFMesh{ tinyModel, tinyMesh });
 	}
 
 	// populate nodes, populate meshes has to be done first

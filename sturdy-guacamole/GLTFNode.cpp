@@ -1,6 +1,6 @@
 #include "GLTFNode.h"
 #include "GLTFModel.h"
-#include "Mesh.h"
+
 #include <tiny_gltf.h>
 
 sturdy_guacamole::GLTFNode::GLTFNode(const tinygltf::Node& tinyNode, const sturdy_guacamole::GLTFModel& myModel)
