@@ -34,7 +34,7 @@
     <ClCompile Include="Graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MeshPrimitive.cpp">
+    <ClCompile Include="GLTFPrimitive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GLTFMesh.cpp">
@@ -47,6 +47,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GLTFScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLTFBufferView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -66,7 +69,7 @@
     <ClInclude Include="Graphics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MeshPrimitive.h">
+    <ClInclude Include="GLTFPrimitive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConstantBuffers.h">
@@ -82,6 +85,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GLTFScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Dx11Helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GLTFBufferView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,5 +1,6 @@
 #include "Graphics.h"
 #include "Dx11Application.h"
+#include "Dx11Helpers.h"
 
 #include <d3dcompiler.h>
 #include <comdef.h>
@@ -17,7 +18,9 @@ sturdy_guacamole::Graphics::Graphics()
 	// For test
 	D3D11_INPUT_ELEMENT_DESC inputElementDescs[]
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL"	, 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT	, 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	ComPtr<ID3D11InputLayout> inputLayout;
@@ -45,21 +48,6 @@ sturdy_guacamole::Graphics::Graphics()
 	// Set the viewport
 	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, float(1280), float(960) };
 	g_pDeviceContext->RSSetViewports(1, &viewport);
-}
-
-void sturdy_guacamole::Graphics::ThrowIfFailed(HRESULT hr, ID3DBlob* errorBlob)
-{
-	if (FAILED(hr))
-	{
-		_com_error err(hr);
-		LPCTSTR errMsg = err.ErrorMessage();
-		::OutputDebugString(errMsg);
-
-		if (errorBlob)
-			::OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-
-		throw hr;
-	}
 }
 
 ComPtr<ID3DBlob> sturdy_guacamole::Graphics::CreateShaderBlob(std::filesystem::path csoFilePath)
@@ -102,38 +90,4 @@ ComPtr<ID3D11PixelShader> sturdy_guacamole::Graphics::CreatePixelShader(std::fil
 	ThrowIfFailed(hr);
 
 	return pixelShader;
-}
-
-ComPtr<ID3D11Buffer> sturdy_guacamole::Graphics::CreateVertexBuffer(const void* pVertexData, UINT vertexDataSize)
-{
-	D3D11_BUFFER_DESC vertexbufferDesc{};
-	vertexbufferDesc.ByteWidth = vertexDataSize;
-	vertexbufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexbufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA subresourceData{};
-	subresourceData.pSysMem = pVertexData;
-
-	ComPtr<ID3D11Buffer> vertexBuffer;
-	HRESULT hr = g_pDevice->CreateBuffer(&vertexbufferDesc, &subresourceData, &vertexBuffer);
-	ThrowIfFailed(hr);
-
-	return vertexBuffer;
-}
-
-ComPtr<ID3D11Buffer> sturdy_guacamole::Graphics::CreateIndexBuffer(const void* pIndexData, UINT indexDataSize)
-{
-	D3D11_BUFFER_DESC indexBufferDesc{};
-	indexBufferDesc.ByteWidth = indexDataSize;
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA subresourceData{};
-	subresourceData.pSysMem = pIndexData;
-	
-	ComPtr<ID3D11Buffer> indexBuffer;
-	HRESULT hr = g_pDevice->CreateBuffer(&indexBufferDesc, &subresourceData, &indexBuffer);
-	ThrowIfFailed(hr);
-
-	return indexBuffer;
 }

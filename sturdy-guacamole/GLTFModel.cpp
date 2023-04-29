@@ -22,11 +22,18 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 	if (!LoadModel(tinyModel, path))
 		throw std::exception("Failed to load glTF");
 
+	// populate buffer views
+	m_bufferViews.reserve(tinyModel.bufferViews.size());
+	for (const auto& tinyBufferView : tinyModel.bufferViews)
+	{
+		m_bufferViews.push_back(GLTFBufferView{ tinyModel, tinyBufferView, *this });
+	}
+
 	// populate meshes
 	m_meshes.reserve(tinyModel.meshes.size());
 	for (const auto& tinyMesh : tinyModel.meshes)
 	{
-		m_meshes.push_back(GLTFMesh{ tinyModel, tinyMesh });
+		m_meshes.push_back(GLTFMesh{ tinyModel, tinyMesh, *this });
 	}
 
 	// populate nodes, populate meshes has to be done first

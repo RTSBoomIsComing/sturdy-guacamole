@@ -4,6 +4,7 @@
 using Microsoft::WRL::ComPtr;
 
 #include <vector>
+#include <string>
 
 namespace tinygltf
 {
@@ -13,19 +14,21 @@ namespace tinygltf
 
 namespace sturdy_guacamole
 {
+	class GLTFModel;
+
 	// this class deal with the mesh primitive of glTF
-	class MeshPrimitive
+	class GLTFPrimitive
 	{
 	public:
-		MeshPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
-		~MeshPrimitive() = default;
+		GLTFPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
+		~GLTFPrimitive() = default;
 		void Draw(ID3D11DeviceContext* pDeviceContext) const;
 		void DrawInstanced(ID3D11DeviceContext* pDeviceContext, UINT instanceCount);
 
 
 	public:
 		// used in ID3D11DeviceContext::IASetIndexBuffer();
-		ComPtr<ID3D11Buffer> m_indexBuffer{};
+		ID3D11Buffer* m_indexBuffer{};
 		DXGI_FORMAT m_indexBufferFormat = DXGI_FORMAT_R16_UINT; // or DXGI_FORMAT_R32_UINT
 
 		// it would be always 0. once creating index buffer, the offset was already applied
@@ -35,9 +38,9 @@ namespace sturdy_guacamole
 		UINT m_indexCount{};
 	
 		// used in ID3D11DeviceContext::IASetVertexBuffers();
-		ComPtr<ID3D11Buffer> m_vertexBuffer{};
-		UINT m_vertexBufferStride{};
-		UINT m_vertexBufferOffset{};
+		std::vector<ID3D11Buffer*> m_vertexBuffers{};
+		std::vector<UINT> m_vertexBufferStrides{};
+		std::vector<UINT> m_vertexBufferOffsets{};
 
 		std::vector<D3D11_INPUT_ELEMENT_DESC> m_inputElementDescs{};
 
@@ -45,8 +48,8 @@ namespace sturdy_guacamole
 		D3D11_PRIMITIVE_TOPOLOGY m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	private:
-		void ProcessIndices(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
-		void ProcessAttributes(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
+		void ProcessIndices(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
+		void ProcessAttributes(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
 		bool SetPrimitiveTopology(const tinygltf::Primitive& primitive);
 	};
 }

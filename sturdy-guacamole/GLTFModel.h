@@ -1,8 +1,11 @@
 #pragma once
 //#include "Scene.h"
+
+#include "GLTFBufferView.h"
 #include "GLTFMesh.h"
 #include "GLTFNode.h"
 #include "GLTFScene.h"
+
 
 #include <directxtk/SimpleMath.h>
 
@@ -24,8 +27,9 @@ namespace sturdy_guacamole
 		~GLTFModel() = default;
 
 
-		std::vector<GLTFNode> m_nodes{};
+		std::vector<GLTFBufferView> m_bufferViews{};
 		std::vector<GLTFMesh> m_meshes{};
+		std::vector<GLTFNode> m_nodes{};
 		std::vector<GLTFScene> m_scenes{};
 
 	private:

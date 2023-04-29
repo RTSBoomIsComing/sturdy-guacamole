@@ -1,5 +1,5 @@
 #pragma once
-#include "MeshPrimitive.h"
+#include "GLTFPrimitive.h"
 
 #include <string>
 #include <vector>
@@ -13,14 +13,15 @@ namespace tinygltf
 
 namespace sturdy_guacamole
 {
+	class GLTFModel;
 	class GLTFMesh
 	{
 	public:
-		GLTFMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh);
+		GLTFMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const GLTFModel& myModel);
 		~GLTFMesh() = default;
 
 		std::string m_name{};
 
-		std::vector<MeshPrimitive> m_meshPrimitives{};
+		std::vector<GLTFPrimitive> m_meshPrimitives{};
 	};
 }
