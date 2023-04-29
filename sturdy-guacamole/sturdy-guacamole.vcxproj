@@ -133,6 +133,8 @@
   <ItemGroup>
     <ClCompile Include="Dx11Application.cpp" />
     <ClCompile Include="GLTFModel.cpp" />
+    <ClCompile Include="GLTFNode.cpp" />
+    <ClCompile Include="GLTFScene.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImguiApplication.cpp" />
     <ClCompile Include="main.cpp" />
@@ -144,6 +146,8 @@
     <ClInclude Include="ConstantBuffers.h" />
     <ClInclude Include="Dx11Application.h" />
     <ClInclude Include="GLTFModel.h" />
+    <ClInclude Include="GLTFNode.h" />
+    <ClInclude Include="GLTFScene.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImguiApplication.h" />
     <ClInclude Include="Mesh.h" />

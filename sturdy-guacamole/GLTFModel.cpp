@@ -29,30 +29,18 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 		m_meshes.push_back(Mesh{ tinyModel, tinyMesh });
 	}
 
-	PopulateNodes(tinyModel);
+	// populate nodes, populate meshes has to be done first
+	// don't use reserve, because we need to be able to use pointers to the nodes
+	m_nodes.resize(tinyModel.nodes.size());
+	for (size_t i{}; i < tinyModel.nodes.size(); i++)
+	{
+		m_nodes[i] = GLTFNode{ tinyModel.nodes[i], *this };
+	}
 
 	// populate scenes
 	for (const auto& tinyScene : tinyModel.scenes)
 	{
-		Scene scene{};
-		scene.m_name = tinyScene.name;
-
-		
-		scene.m_roots.reserve(tinyScene.nodes.size());
-		for (int rootIdx : tinyScene.nodes)
-		{
-			scene.m_roots.push_back(&m_nodes[rootIdx]);
-		}
-
-		scene.m_dfsLists.resize(tinyScene.nodes.size());
-		for (size_t i{}; i < scene.m_roots.size(); i++)
-		{
-			GenerateDFSList(scene.m_roots[i], nullptr, scene.m_dfsLists[i]);
-		}
-
-
-
-		m_scenes.push_back(scene);
+		m_scenes.push_back(GLTFScene{ tinyScene, *this });
 	}
 }
 
@@ -78,65 +66,4 @@ bool sturdy_guacamole::GLTFModel::LoadModel(tinygltf::Model& outModel, const std
 		std::cout << "Loaded glTF: " << pathStr << std::endl;
 
 	return res;
-}
-
-void sturdy_guacamole::GLTFModel::PopulateNodes(const tinygltf::Model& tinyModel)
-{
-	using namespace DirectX::SimpleMath;
-	m_nodes.reserve(tinyModel.nodes.size());
-	for (const auto& tinyNode : tinyModel.nodes)
-	{
-		Node node{};
-		node.m_name = tinyNode.name;
-
-		if (static_cast<size_t>(tinyNode.mesh) < tinyModel.meshes.size())
-			node.m_mesh = &m_meshes[tinyNode.mesh];
-
-		for (int i : tinyNode.children)
-		{
-			node.m_children.push_back(&m_nodes[i]);
-		}
-
-		if (tinyNode.scale.size() > 0)
-			node.m_scale = { (float)tinyNode.scale[0], (float)tinyNode.scale[1], (float)tinyNode.scale[2] };
-
-		if (tinyNode.rotation.size() > 0)
-			node.m_rotation = { (float)tinyNode.rotation[0], (float)tinyNode.rotation[1],(float)tinyNode.rotation[2], (float)tinyNode.rotation[3] };
-
-		if (tinyNode.translation.size() > 0)
-			node.m_translation = { (float)tinyNode.translation[0], (float)tinyNode.translation[1], (float)tinyNode.translation[2] };
-
-		for (size_t i{}; i < tinyNode.matrix.size(); i++)
-		{
-			node.m_matrix.m[i / 4][i % 4] = static_cast<float>(tinyNode.matrix[i]);
-		}
-
-		if (tinyNode.matrix.empty())
-		{
-			auto S = Matrix::CreateScale(node.m_scale);
-			auto R = Matrix::CreateFromQuaternion(node.m_rotation);
-			auto T = Matrix::CreateTranslation(node.m_translation);
-			node.m_matrix = S * R * T;
-		}
-
-		m_nodes.push_back(node);
-	}
-}
-
-void sturdy_guacamole::GLTFModel::GenerateDFSList(const Node* node, const DFSNode* parent, DFSList& dfsList) const
-{
-	using namespace DirectX::SimpleMath;
-	DFSNode dfsNode{};
-	dfsNode.m_node = node;
-	dfsNode.m_parent = (parent) ? parent->m_node : nullptr;
-	dfsNode.m_globalTransform = (parent) ? parent->m_globalTransform : Matrix::Identity;
-	dfsNode.m_globalTransform *= node->m_matrix;
-
-	dfsList.push_back(dfsNode);
-
-	for (const Node* child : node->m_children)
-	{
-		GenerateDFSList(child, &dfsNode, dfsList);
-
-	}
 }

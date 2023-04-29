@@ -201,14 +201,14 @@ int main()
 		// Start rendering
 		for (const auto& scene : gltfModel.m_scenes)
 		{
-			for (const auto& dfsList : scene.m_dfsLists)
+			for (const auto& traversal : scene.m_traversals)
 			{
-				for (const auto& dfsNode : dfsList)
+				for (const auto& step : traversal)
 				{
 					// Create mesh constants
 					sturdy_guacamole::MeshConstants meshConstants = {
-							dfsNode.m_globalTransform,
-							dfsNode.m_globalTransform.Invert().Transpose()
+							step.m_globalTransform,
+							step.m_globalTransform.Invert().Transpose()
 					};
 
 					// Update mesh constant buffer
@@ -216,9 +216,9 @@ int main()
 					g_pDeviceContext->Map(meshConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 					::memcpy(mappedResource.pData, &meshConstants, sizeof(meshConstants));
 					g_pDeviceContext->Unmap(meshConstantBuffer.Get(), 0);
-					if (dfsNode.m_node->m_mesh)
+					if (step.m_node->m_mesh)
 					{
-						for (const auto& primitive : dfsNode.m_node->m_mesh->m_meshPrimitives)
+						for (const auto& primitive : step.m_node->m_mesh->m_meshPrimitives)
 						{
 							primitive.Draw(g_pDeviceContext);
 						}
