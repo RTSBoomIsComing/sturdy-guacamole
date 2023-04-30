@@ -37,10 +37,6 @@ The depth stencil buffer applied.
 POSITION, NORMAL, TEXCOORD attributes are dealt.
 But more features are needed to visualize and test those.
 
-POSITION range of above image is [0, 1]. 
-Vertices are so close each other that depth buffer seem to be working wrong. 
-Therefore the feature scailing models is needed. (this feature is related to animation)
-
 ## TODO
 1. implement direct lighting. e.g. PBR, Material, Light
 1. implement cubemap and IBL(image based lighting)
