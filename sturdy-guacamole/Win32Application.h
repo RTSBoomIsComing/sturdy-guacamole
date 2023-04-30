@@ -14,7 +14,7 @@ namespace sturdy_guacamole
 
 	public:
 		HWND m_hWnd{};
-		int m_width{ 1280 };
-		int m_height{ 960 };
+		UINT m_width{ 1280u };
+		UINT m_height{ 960u };
 	};
 }

@@ -62,10 +62,7 @@ int main()
 	// Initialize Graphics singleton instance
 	sturdy_guacamole::Graphics gfx{};
 
-	// Set the viewport
-	RECT rect{};
-	::GetClientRect(win32App.m_hWnd, &rect); // left and top are always 0
-	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(rect.right), static_cast<float>(rect.bottom) };
+	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(win32App.m_width), static_cast<float>(win32App.m_height) };
 	g_pDeviceContext->RSSetViewports(1, &viewport);
 
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
@@ -179,10 +176,8 @@ int main()
 		// create view, projection matrix
 		Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);
 
-		RECT rect{};
-		::GetClientRect(win32App.m_hWnd, &rect); // left and top are always 0
 		Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
-			DirectX::XMConvertToRadians(90.0f), float(rect.right) / float(rect.bottom), 0.1f, 100.0f);
+			DirectX::XMConvertToRadians(90.0f), float(win32App.m_width) / float(win32App.m_height), 0.1f, 100.0f);
 
 		sturdy_guacamole::CommonConstants commonConstants{};
 		commonConstants.ViewerPos = Vector4{ viewerPos };
@@ -271,7 +266,14 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_SIZE:
 		if (g_pDevice && wParam != SIZE_MINIMIZED)
-			sturdy_guacamole::Dx11Application::ResizeRenderTarget(LOWORD(lParam), HIWORD(lParam));
+		{
+			UINT newWidth = LOWORD(lParam);
+			UINT newHeight = HIWORD(lParam);
+
+			sturdy_guacamole::Dx11Application::ResizeRenderTarget(newWidth, newHeight);
+			sturdy_guacamole::Win32Application::Get().m_width = newWidth;
+			sturdy_guacamole::Win32Application::Get().m_height = newHeight;
+		}
 		return 0;
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
