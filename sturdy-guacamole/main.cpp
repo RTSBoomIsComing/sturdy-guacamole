@@ -158,12 +158,11 @@ int main()
 
 		
 		// Clear the back buffer
-		g_pDeviceContext->OMSetRenderTargets(1, gfx.m_rtview.main.GetAddressOf(), gfx.m_dsview.main.Get());
-		
 		float clear_color[]{ 0.0f, 0.2f, 0.4f, 1.0f };
 		g_pDeviceContext->ClearRenderTargetView(gfx.m_rtview.main.Get(), clear_color);
 		g_pDeviceContext->ClearDepthStencilView(gfx.m_dsview.main.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+		g_pDeviceContext->OMSetRenderTargets(1, gfx.m_rtview.main.GetAddressOf(), gfx.m_dsview.main.Get());
 
 		// create view, projection matrix
 		Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);

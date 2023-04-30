@@ -94,11 +94,11 @@ void sturdy_guacamole::Graphics::InitDepthStencilViews()
 {
 	// Create the depth stencil texture
 	ComPtr<ID3D11Texture2D> dsBuffer{};
-	CD3D11_TEXTURE2D_DESC depthStencilDesc{ DXGI_FORMAT_D24_UNORM_S8_UINT, Win32App::Get().m_width, Win32App::Get().m_height };
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	ThrowIfFailed(g_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &dsBuffer));
+	CD3D11_TEXTURE2D_DESC dsBufDesc{ DXGI_FORMAT_D24_UNORM_S8_UINT, Win32App::Get().m_width, Win32App::Get().m_height, 
+		1u, 0u, D3D11_BIND_DEPTH_STENCIL };
+	ThrowIfFailed(g_pDevice->CreateTexture2D(&dsBufDesc, nullptr, &dsBuffer));
 
 	// Create the main depth stencil view
-	CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc{ D3D11_DSV_DIMENSION_TEXTURE2D };
-	ThrowIfFailed(g_pDevice->CreateDepthStencilView(dsBuffer.Get(), &depthStencilViewDesc, &m_dsview.main));
+	CD3D11_DEPTH_STENCIL_VIEW_DESC dsviewDesc{ D3D11_DSV_DIMENSION_TEXTURE2D };
+	ThrowIfFailed(g_pDevice->CreateDepthStencilView(dsBuffer.Get(), &dsviewDesc, &m_dsview.main));
 }
