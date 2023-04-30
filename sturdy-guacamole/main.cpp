@@ -48,7 +48,7 @@ int main()
 	sturdy_guacamole::Dx11Application dx11App{ win32App.m_hWnd };
 
 	// Create imgui application
-	sturdy_guacamole::ImguiApplication imguiApp{ win32App.m_hWnd, dx11App.GetDevice(), dx11App.GetDeviceContext() };
+	sturdy_guacamole::ImguiApplication imguiApp{ win32App.m_hWnd, dx11App.m_device.Get(), dx11App.m_deviceContext.Get()};
 
 	// Initialize mouse singleton instance
 	std::unique_ptr<DirectX::Mouse> mouse = std::make_unique<DirectX::Mouse>();
@@ -162,12 +162,12 @@ int main()
 
 		// Clear the back buffer
 		ID3D11RenderTargetView* ppRenderTargetViews[] = {
-			g_pRenderTargetView
+			g_pRenderTargetView.Get()
 		};
 		g_pDeviceContext->OMSetRenderTargets(ARRAYSIZE(ppRenderTargetViews), ppRenderTargetViews, nullptr);
 
 		float clear_color[]{ 0.0f, 0.2f, 0.4f, 1.0f };
-		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView, clear_color);
+		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView.Get(), clear_color);
 		// TODO : clear depth stencil view
 		// g_pDeviceContext->ClearDepthStencilView()
 
@@ -222,7 +222,7 @@ int main()
 					{
 						for (const auto& primitive : step.m_node->m_mesh->m_meshPrimitives)
 						{
-							primitive.Draw(g_pDeviceContext);
+							primitive.Draw(g_pDeviceContext.Get());
 						}
 					}
 				}
@@ -270,7 +270,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			UINT newWidth = LOWORD(lParam);
 			UINT newHeight = HIWORD(lParam);
 
-			sturdy_guacamole::Dx11Application::ResizeRenderTarget(newWidth, newHeight);
+			sturdy_guacamole::Dx11Application::Get().ResizeRenderTarget(newWidth, newHeight);
 			sturdy_guacamole::Win32Application::Get().m_width = newWidth;
 			sturdy_guacamole::Win32Application::Get().m_height = newHeight;
 		}

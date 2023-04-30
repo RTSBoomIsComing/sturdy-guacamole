@@ -18,7 +18,7 @@ sturdy_guacamole::Graphics::Graphics()
 	// Create vertex shader blobs and vertex shaders 
 	{
 		vsBlob.basic = CreateShaderBlob(OutDir / L"BasicVS.cso");
-		vtxShader.basic = CreateVertexShader(g_pDevice, vsBlob.basic.Get());
+		vtxShader.basic = CreateVertexShader(g_pDevice.Get(), vsBlob.basic.Get());
 
 	}
 	// Set the default vertex shader
@@ -27,7 +27,7 @@ sturdy_guacamole::Graphics::Graphics()
 	// Create the pixel shader, pixel shader blob is not needed anymore
 	{
 		auto psBlob = CreateShaderBlob(OutDir / L"BasicPS.cso");
-		pixShader.basic = CreatePixelShader(g_pDevice, psBlob.Get());
+		pixShader.basic = CreatePixelShader(g_pDevice.Get(), psBlob.Get());
 	}
 	// Set the default pixel shader
 	g_pDeviceContext->PSSetShader(pixShader.basic.Get(), nullptr, 0);

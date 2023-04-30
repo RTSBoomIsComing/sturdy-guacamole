@@ -57,12 +57,12 @@ void sturdy_guacamole::Dx11Application::ResizeRenderTarget(UINT newWidth, UINT n
 	Get().m_renderTargetView = nullptr;
 
 	// Resize swap chain
-	GetSwapChain()->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+	m_swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 
 	// Create a render target view
 	ComPtr<ID3D11Texture2D> backBuffer;
-	GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-	GetDevice()->CreateRenderTargetView(backBuffer.Get(), nullptr, &Get().m_renderTargetView);
+	m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+	m_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &Get().m_renderTargetView);
 
 	// Set viewport
 	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(newWidth), static_cast<float>(newHeight) };
