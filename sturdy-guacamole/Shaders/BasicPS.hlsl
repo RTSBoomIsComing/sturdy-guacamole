@@ -16,10 +16,11 @@ struct VSOutput
 	float3 worldPos : POSITION;
 	float3 normal : NORMAL;
 	//float3 tangent : TANGENT;
-	float2 texCoord : TEXCOORD0;
+	float2 uv : TEXCOORD0;
 };
 
 float4 main(VSOutput vsOutput) : SV_Target0
 {
-	return float4(0.75f, 0.75f, 0.75f, 1.0f);
+	return float4(vsOutput.normal, 1.0f);
+	//return float4(0.75f, 0.75f, 0.75f, 1.0f);
 }

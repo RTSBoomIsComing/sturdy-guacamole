@@ -1,6 +1,7 @@
 #include "Graphics.h"
 #include "Dx11Application.h"
 #include "Dx11Helpers.h"
+#include "Win32Application.h"
 
 #include <d3dcompiler.h>
 #include <comdef.h>
@@ -11,47 +12,93 @@ sturdy_guacamole::Graphics::Graphics()
 	WCHAR exeFilePath[MAX_PATH]{};
 	::GetModuleFileNameW(NULL, exeFilePath, MAX_PATH);
 
-	// Get the path of Output directory (where the shader files are)
+	// Get the path of Output directory where the compiled shader objects (.cso) are
 	std::filesystem::path OutDir = exeFilePath;
 	OutDir = OutDir.parent_path();
 
-	// Create vertex shader blobs and vertex shaders 
-	{
-		m_vsBlob.basic = CreateShaderBlob(OutDir / L"BasicVS.cso");
-		m_vtxShader.basic = CreateVertexShader(g_pDevice.Get(), m_vsBlob.basic.Get());
-
-	}
 	// Set the default vertex shader
+	this->InitVertexShaders(OutDir);
 	g_pDeviceContext->VSSetShader(m_vtxShader.basic.Get(), nullptr, 0);
 
-	// Create the pixel shader, pixel shader blob is not needed anymore
-	{
-		auto psBlob = CreateShaderBlob(OutDir / L"BasicPS.cso");
-		m_pixShader.basic = CreatePixelShader(g_pDevice.Get(), psBlob.Get());
-	}
 	// Set the default pixel shader
+	this->InitPixelShaders(OutDir);
 	g_pDeviceContext->PSSetShader(m_pixShader.basic.Get(), nullptr, 0);
 
-
-	// Create rasterizer states 
-	{
-		CD3D11_RASTERIZER_DESC rasterizerDesc{ D3D11_DEFAULT };
-		rasterizerDesc.FrontCounterClockwise = TRUE;
-		rasterizerDesc.DepthClipEnable = FALSE;
-		ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &m_rsstate.solid));
-
-		rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
-		ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &m_rsstate.wireframe));
-	}
-
 	// Set the default rasterizer state
+	this->InitRasterizerStates();
 	g_pDeviceContext->RSSetState(m_rsstate.solid.Get());
 
-	// Create depth stencil state
-	static ComPtr<ID3D11DepthStencilState> depthStencilState{};
-	CD3D11_DEPTH_STENCIL_DESC depthStencilDesc{ D3D11_DEFAULT };
-	ThrowIfFailed(g_pDevice->CreateDepthStencilState(&depthStencilDesc, &depthStencilState));
-	g_pDeviceContext->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	// Set the default depth stencil state
+	this->InitDepthStencilStates();
+	g_pDeviceContext->OMSetDepthStencilState(m_dsstate.basic.Get(), 0);
+
+	// Set the default rtview and dsview
+	this->InitRenderTargetViews();
+	this->InitDepthStencilViews();
+	g_pDeviceContext->OMSetRenderTargets(1, m_rtview.main.GetAddressOf(), m_dsview.main.Get());
+
+	// Set the default viewport
+	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(Win32App::Get().m_width), static_cast<float>(Win32App::Get().m_height)};
+	g_pDeviceContext->RSSetViewports(1, &viewport);
 }
 
+void sturdy_guacamole::Graphics::InitVertexShaders(std::filesystem::path baseDir)
+{
+	// Create basic vertex shader
+	m_vtxShader.basic_blob = CreateShaderBlob(baseDir / L"BasicVS.cso");
+	m_vtxShader.basic = CreateVertexShader(g_pDevice.Get(), m_vtxShader.basic_blob.Get());
+}
 
+void sturdy_guacamole::Graphics::InitPixelShaders(std::filesystem::path baseDir)
+{
+	// Create basic pixel shader
+	auto psblob = CreateShaderBlob(baseDir / L"BasicPS.cso");
+	m_pixShader.basic = CreatePixelShader(g_pDevice.Get(), psblob.Get());
+}
+
+void sturdy_guacamole::Graphics::InitRasterizerStates()
+{
+	// Create default rasterizer desciption
+	CD3D11_RASTERIZER_DESC rasterizerDesc{ D3D11_DEFAULT };
+	rasterizerDesc.FrontCounterClockwise = TRUE;
+	rasterizerDesc.DepthClipEnable = FALSE;
+
+	// Create rasterizer state that draw solid polygons
+	ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &m_rsstate.solid));
+
+	// Create rasterizer state that draw wireframe of polygons
+	rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+	ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &m_rsstate.wireframe));
+}
+
+void sturdy_guacamole::Graphics::InitDepthStencilStates()
+{
+	// Create default depth stencil desciption
+	CD3D11_DEPTH_STENCIL_DESC depthStencilDesc{ D3D11_DEFAULT };
+
+	// Create depth stencil state that pass depth test and write to depth buffer
+	ThrowIfFailed(g_pDevice->CreateDepthStencilState(&depthStencilDesc, &m_dsstate.basic));
+}
+
+void sturdy_guacamole::Graphics::InitRenderTargetViews()
+{
+	// Get the back buffer
+	ComPtr<ID3D11Texture2D> backBuffer{};
+	ThrowIfFailed(g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
+
+	// Create the main render target view
+	ThrowIfFailed(g_pDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_rtview.main));
+}
+
+void sturdy_guacamole::Graphics::InitDepthStencilViews()
+{
+	// Create the depth stencil texture
+	ComPtr<ID3D11Texture2D> dsBuffer{};
+	CD3D11_TEXTURE2D_DESC depthStencilDesc{ DXGI_FORMAT_D24_UNORM_S8_UINT, Win32App::Get().m_width, Win32App::Get().m_height };
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	ThrowIfFailed(g_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &dsBuffer));
+
+	// Create the main depth stencil view
+	CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc{ D3D11_DSV_DIMENSION_TEXTURE2D };
+	ThrowIfFailed(g_pDevice->CreateDepthStencilView(dsBuffer.Get(), &depthStencilViewDesc, &m_dsview.main));
+}

@@ -18,14 +18,12 @@ namespace sturdy_guacamole
 		ComPtr<ID3D11Device> m_device{};
 		ComPtr<ID3D11DeviceContext> m_deviceContext{};
 		ComPtr<IDXGISwapChain> m_swapChain{};
-		ComPtr<ID3D11RenderTargetView> m_renderTargetView{};
-
-	public:
-		void ResizeRenderTarget(UINT newWidth, UINT newHeight);
 	};
+
+	using Dx11App = sturdy_guacamole::Dx11Application;
 }
 
 #define g_pDevice sturdy_guacamole::Dx11Application::Get().m_device
 #define g_pDeviceContext sturdy_guacamole::Dx11Application::Get().m_deviceContext
 #define g_pSwapChain sturdy_guacamole::Dx11Application::Get().m_swapChain
-#define g_pRenderTargetView sturdy_guacamole::Dx11Application::Get().m_renderTargetView
+

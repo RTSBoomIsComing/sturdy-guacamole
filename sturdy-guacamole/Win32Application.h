@@ -17,4 +17,6 @@ namespace sturdy_guacamole
 		UINT m_width{ 1280u };
 		UINT m_height{ 960u };
 	};
+
+	using Win32App = sturdy_guacamole::Win32Application;
 }

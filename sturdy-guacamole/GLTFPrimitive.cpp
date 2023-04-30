@@ -144,7 +144,7 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 	}
 
 	// create input layout
-	const auto& vsBlob = Graphics::Get().m_vsBlob.basic;
+	const auto& vsBlob = Graphics::Get().m_vtxShader.basic_blob;
 	HRESULT hr = g_pDevice->CreateInputLayout(inputElementDescs.data(), (UINT)inputElementDescs.size(),
 		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout);
 	ThrowIfFailed(hr);

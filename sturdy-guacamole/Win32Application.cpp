@@ -7,7 +7,7 @@ sturdy_guacamole::Win32Application::Win32Application()
 	::RegisterClassExW(&wc);
 	
 	RECT rect{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
-	::AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, false, WS_EX_OVERLAPPEDWINDOW);
+	::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
 	int adjusted_width{ rect.right - rect.left };
 	int adjusted_height{ rect.bottom - rect.top };

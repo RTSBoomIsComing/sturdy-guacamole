@@ -23,7 +23,7 @@ struct VSInput
 	float3 position	: POSITION;
 	float3 normal	: NORMAL;
 	//float3 tangent	: TANGENT;
-	float2 texCoord	: TEXCOORD0;
+	float2 uv	: TEXCOORD0;
 };
 
 struct VSOutput
@@ -32,7 +32,7 @@ struct VSOutput
 	float3 worldPos : POSITION;
 	float3 normal : NORMAL;
 	//float3 tangent : TANGENT;
-	float2 texCoord : TEXCOORD0;
+	float2 uv : TEXCOORD0;
 };
 
 VSOutput main(VSInput vsInput) 
@@ -42,5 +42,8 @@ VSOutput main(VSInput vsInput)
 	float4 position = float4(vsInput.position, 1.0);
 	vsOutput.worldPos = mul(WorldMatrix, position).xyz;
 	vsOutput.position = mul(ViewProjMatrix, float4(vsOutput.worldPos, 1.0));
+	vsOutput.normal = mul(WorldIT, float4(vsInput.normal, 1.0));
+	//vsOutput.tangent = mul(World, tangent);
+	vsOutput.uv = vsInput.uv;
 	return vsOutput;
 }

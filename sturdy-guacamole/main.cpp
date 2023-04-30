@@ -1,7 +1,7 @@
 #include "Win32Application.h"
 #include "ImguiApplication.h"
 #include "Dx11Application.h"
-
+#include "Dx11Helpers.h"
 #include "Graphics.h"
 #include "ConstantBuffers.h"
 
@@ -61,9 +61,6 @@ int main()
 
 	// Initialize Graphics singleton instance
 	sturdy_guacamole::Graphics gfx{};
-
-	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(win32App.m_width), static_cast<float>(win32App.m_height) };
-	g_pDeviceContext->RSSetViewports(1, &viewport);
 
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf"
@@ -159,18 +156,13 @@ int main()
 		if (kb_state.C)
 			viewerPos -= viewerUp * deltaTime;
 
-
+		
 		// Clear the back buffer
-		ID3D11RenderTargetView* ppRenderTargetViews[] = {
-			g_pRenderTargetView.Get()
-		};
-		g_pDeviceContext->OMSetRenderTargets(ARRAYSIZE(ppRenderTargetViews), ppRenderTargetViews, nullptr);
-
+		g_pDeviceContext->OMSetRenderTargets(1, gfx.m_rtview.main.GetAddressOf(), gfx.m_dsview.main.Get());
+		
 		float clear_color[]{ 0.0f, 0.2f, 0.4f, 1.0f };
-		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView.Get(), clear_color);
-		// TODO : clear depth stencil view
-		// g_pDeviceContext->ClearDepthStencilView()
-
+		g_pDeviceContext->ClearRenderTargetView(gfx.m_rtview.main.Get(), clear_color);
+		g_pDeviceContext->ClearDepthStencilView(gfx.m_dsview.main.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 
 		// create view, projection matrix
@@ -267,12 +259,41 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		if (g_pDevice && wParam != SIZE_MINIMIZED)
 		{
+			using namespace sturdy_guacamole;
+
 			UINT newWidth = LOWORD(lParam);
 			UINT newHeight = HIWORD(lParam);
 
-			sturdy_guacamole::Dx11Application::Get().ResizeRenderTarget(newWidth, newHeight);
-			sturdy_guacamole::Win32Application::Get().m_width = newWidth;
-			sturdy_guacamole::Win32Application::Get().m_height = newHeight;
+			sturdy_guacamole::Win32App::Get().m_width = newWidth;
+			sturdy_guacamole::Win32App::Get().m_height = newHeight;
+
+			g_pDeviceContext->OMSetRenderTargets(0U, nullptr, nullptr);
+			g_pDeviceContext->Flush();
+
+			// Release all outstanding references to the swap chain's buffers
+			Graphics::Get().m_rtview.main = nullptr;
+			Graphics::Get().m_dsview.main = nullptr;
+
+			// Create the main render target view
+			g_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+			ComPtr<ID3D11Texture2D> backBuffer;
+			g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+			
+			g_pDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, &Graphics::Get().m_rtview.main);
+
+			// Create the main depth stencil view
+			ComPtr<ID3D11Texture2D> dsBuffer{};
+			CD3D11_TEXTURE2D_DESC dsBufDesc{ DXGI_FORMAT_D24_UNORM_S8_UINT, newWidth, newHeight, 1u, 0u, D3D11_BIND_DEPTH_STENCIL };
+			ThrowIfFailed(g_pDevice->CreateTexture2D(&dsBufDesc, nullptr, &dsBuffer));
+
+			CD3D11_DEPTH_STENCIL_VIEW_DESC dsviewDesc{ D3D11_DSV_DIMENSION_TEXTURE2D };
+			ThrowIfFailed(g_pDevice->CreateDepthStencilView(dsBuffer.Get(), &dsviewDesc, &Graphics::Get().m_dsview.main));
+
+			// Set new viewport
+			CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(newWidth), static_cast<float>(newHeight) };
+			g_pDeviceContext->RSSetViewports(1, &viewport);
+
 		}
 		return 0;
 	case WM_SYSCOMMAND:

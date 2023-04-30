@@ -17,22 +17,8 @@ namespace sturdy_guacamole
 	public:
 		struct
 		{
-			ComPtr<ID3D11RenderTargetView> main{};
-		} m_rtview;
-
-		struct
-		{
-			ComPtr<ID3D11DepthStencilView> main{};
-		} m_dsview;
-
-		struct
-		{
-			ComPtr<ID3DBlob> basic{};
-		} m_vsBlob;
-
-		struct
-		{
 			ComPtr<ID3D11VertexShader> basic{};
+			ComPtr<ID3DBlob> basic_blob{};
 		} m_vtxShader;
 
 		struct
@@ -44,6 +30,29 @@ namespace sturdy_guacamole
 		{
 			ComPtr<ID3D11RasterizerState> solid{};
 			ComPtr<ID3D11RasterizerState> wireframe{};
-		} m_rsstate;
+		} m_rsstate; // rasterizer state
+
+		struct
+		{
+			ComPtr<ID3D11DepthStencilState> basic{};
+		} m_dsstate; // depth stencil state
+
+		struct
+		{
+			ComPtr<ID3D11RenderTargetView> main{};
+		} m_rtview; // render target view
+
+		struct
+		{
+			ComPtr<ID3D11DepthStencilView> main{};
+		} m_dsview; // depth stencil view
+
+	private:
+		void InitVertexShaders(std::filesystem::path baseDir);
+		void InitPixelShaders(std::filesystem::path baseDir);
+		void InitRasterizerStates();
+		void InitDepthStencilStates();
+		void InitRenderTargetViews();
+		void InitDepthStencilViews();
 	};
 }
