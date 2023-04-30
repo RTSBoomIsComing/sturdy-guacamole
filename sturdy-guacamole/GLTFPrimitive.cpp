@@ -67,7 +67,7 @@ void sturdy_guacamole::GLTFPrimitive::ProcessIndices(const tinygltf::Model& tiny
 void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& tinyModel, const tinygltf::Primitive& primitive, const GLTFModel& myModel)
 {
 	// used in ID3D11Device::CreateInputLayout();
-	std::vector<D3D11_INPUT_ELEMENT_DESC> m_inputElementDescs{};
+	std::vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs{};
 
 	const auto& attributes = primitive.attributes;
 
@@ -140,12 +140,12 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		inputElementDesc.AlignedByteOffset = (UINT)accessor.byteOffset;
 		inputElementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-		m_inputElementDescs.push_back(inputElementDesc);
+		inputElementDescs.push_back(inputElementDesc);
 	}
 
 	// create input layout
 	const auto& vsBlob = Graphics::GetInstance().vsBlob.basic;
-	HRESULT hr = g_pDevice->CreateInputLayout(m_inputElementDescs.data(), (UINT)m_inputElementDescs.size(),
+	HRESULT hr = g_pDevice->CreateInputLayout(inputElementDescs.data(), (UINT)inputElementDescs.size(),
 		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout);
 	ThrowIfFailed(hr);
 }
