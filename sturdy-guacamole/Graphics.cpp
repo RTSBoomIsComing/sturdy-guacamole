@@ -38,14 +38,20 @@ sturdy_guacamole::Graphics::Graphics()
 		CD3D11_RASTERIZER_DESC rasterizerDesc{ D3D11_DEFAULT };
 		rasterizerDesc.FrontCounterClockwise = TRUE;
 		rasterizerDesc.DepthClipEnable = FALSE;
-		g_pDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState.solid);
+		ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState.solid));
 
 		rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
-		g_pDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState.wireframe);
+		ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState.wireframe));
 	}
 
 	// Set the default rasterizer state
-	g_pDeviceContext->RSSetState(rasterizerState.wireframe.Get());
+	g_pDeviceContext->RSSetState(rasterizerState.solid.Get());
+
+	// Create depth stencil state
+	static ComPtr<ID3D11DepthStencilState> depthStencilState{};
+	CD3D11_DEPTH_STENCIL_DESC depthStencilDesc{ D3D11_DEFAULT };
+	ThrowIfFailed(g_pDevice->CreateDepthStencilState(&depthStencilDesc, &depthStencilState));
+	g_pDeviceContext->OMSetDepthStencilState(depthStencilState.Get(), 0);
 }
 
 

@@ -42,17 +42,17 @@ int main()
 	sturdy_guacamole::Win32Application win32App{};
 
 	// Set WndProc for the application window
-	::SetWindowLongPtrW(win32App.GetWindowHandle(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
+	::SetWindowLongPtrW(win32App.m_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
 
 	// Initialize dx11 application singleton instance
-	sturdy_guacamole::Dx11Application dx11App{ win32App.GetWindowHandle() };
+	sturdy_guacamole::Dx11Application dx11App{ win32App.m_hWnd };
 
 	// Create imgui application
-	sturdy_guacamole::ImguiApplication imguiApp{ win32App.GetWindowHandle(), dx11App.GetDevice(), dx11App.GetDeviceContext() };
+	sturdy_guacamole::ImguiApplication imguiApp{ win32App.m_hWnd, dx11App.GetDevice(), dx11App.GetDeviceContext() };
 
 	// Initialize mouse singleton instance
 	std::unique_ptr<DirectX::Mouse> mouse = std::make_unique<DirectX::Mouse>();
-	mouse->SetWindow(win32App.GetWindowHandle());
+	mouse->SetWindow(win32App.m_hWnd);
 	DirectX::Mouse::ButtonStateTracker mouse_tracker;
 
 	// Initialize keyboard singleton instance
@@ -64,7 +64,7 @@ int main()
 
 	// Set the viewport
 	RECT rect{};
-	::GetClientRect(win32App.GetWindowHandle(), &rect); // left and top are always 0
+	::GetClientRect(win32App.m_hWnd, &rect); // left and top are always 0
 	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(rect.right), static_cast<float>(rect.bottom) };
 	g_pDeviceContext->RSSetViewports(1, &viewport);
 
@@ -171,6 +171,8 @@ int main()
 
 		float clear_color[]{ 0.0f, 0.2f, 0.4f, 1.0f };
 		g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView, clear_color);
+		// TODO : clear depth stencil view
+		// g_pDeviceContext->ClearDepthStencilView()
 
 
 
@@ -178,7 +180,7 @@ int main()
 		Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);
 
 		RECT rect{};
-		::GetClientRect(win32App.GetWindowHandle(), &rect); // left and top are always 0
+		::GetClientRect(win32App.m_hWnd, &rect); // left and top are always 0
 		Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
 			DirectX::XMConvertToRadians(90.0f), float(rect.right) / float(rect.bottom), 0.1f, 100.0f);
 

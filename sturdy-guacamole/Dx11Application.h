@@ -22,10 +22,10 @@ namespace sturdy_guacamole
 		ComPtr<ID3D11RenderTargetView> m_renderTargetView{};
 
 	public:
-		static ID3D11Device* GetDevice() { return GetInstance().m_device.Get(); }
-		static ID3D11DeviceContext* GetDeviceContext() { return GetInstance().m_deviceContext.Get(); }
-		static IDXGISwapChain* GetSwapChain() { return GetInstance().m_swapChain.Get(); }
-		static ID3D11RenderTargetView* GetRenderTargetView() { return GetInstance().m_renderTargetView.Get(); }
+		static ID3D11Device* GetDevice() { return Get().m_device.Get(); }
+		static ID3D11DeviceContext* GetDeviceContext() { return Get().m_deviceContext.Get(); }
+		static IDXGISwapChain* GetSwapChain() { return Get().m_swapChain.Get(); }
+		static ID3D11RenderTargetView* GetRenderTargetView() { return Get().m_renderTargetView.Get(); }
 
 	public:
 		static void ResizeRenderTarget(UINT newWidth, UINT newHeight);

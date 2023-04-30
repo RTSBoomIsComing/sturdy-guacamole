@@ -22,7 +22,7 @@ protected:
 
 public:
 	// Inherit with protected when you want to hide GetInstance()
-	static T& GetInstance()
+	static T& Get()
 	{
 		if (!s_instance)
 			throw std::logic_error("Singleton does not exist.");
