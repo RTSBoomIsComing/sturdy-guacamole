@@ -17,23 +17,33 @@ namespace sturdy_guacamole
 	public:
 		struct
 		{
+			ComPtr<ID3D11RenderTargetView> main{};
+		} m_rtview;
+
+		struct
+		{
+			ComPtr<ID3D11DepthStencilView> main{};
+		} m_dsview;
+
+		struct
+		{
 			ComPtr<ID3DBlob> basic{};
-		} vsBlob;
+		} m_vsBlob;
 
 		struct
 		{
 			ComPtr<ID3D11VertexShader> basic{};
-		} vtxShader;
+		} m_vtxShader;
 
 		struct
 		{
 			ComPtr<ID3D11PixelShader> basic{};
-		} pixShader;
+		} m_pixShader;
 
 		struct
 		{
 			ComPtr<ID3D11RasterizerState> solid{};
 			ComPtr<ID3D11RasterizerState> wireframe{};
-		} rasterizerState;
+		} m_rsstate;
 	};
 }

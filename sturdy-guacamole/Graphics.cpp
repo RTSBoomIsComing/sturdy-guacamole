@@ -17,20 +17,20 @@ sturdy_guacamole::Graphics::Graphics()
 
 	// Create vertex shader blobs and vertex shaders 
 	{
-		vsBlob.basic = CreateShaderBlob(OutDir / L"BasicVS.cso");
-		vtxShader.basic = CreateVertexShader(g_pDevice.Get(), vsBlob.basic.Get());
+		m_vsBlob.basic = CreateShaderBlob(OutDir / L"BasicVS.cso");
+		m_vtxShader.basic = CreateVertexShader(g_pDevice.Get(), m_vsBlob.basic.Get());
 
 	}
 	// Set the default vertex shader
-	g_pDeviceContext->VSSetShader(vtxShader.basic.Get(), nullptr, 0);
+	g_pDeviceContext->VSSetShader(m_vtxShader.basic.Get(), nullptr, 0);
 
 	// Create the pixel shader, pixel shader blob is not needed anymore
 	{
 		auto psBlob = CreateShaderBlob(OutDir / L"BasicPS.cso");
-		pixShader.basic = CreatePixelShader(g_pDevice.Get(), psBlob.Get());
+		m_pixShader.basic = CreatePixelShader(g_pDevice.Get(), psBlob.Get());
 	}
 	// Set the default pixel shader
-	g_pDeviceContext->PSSetShader(pixShader.basic.Get(), nullptr, 0);
+	g_pDeviceContext->PSSetShader(m_pixShader.basic.Get(), nullptr, 0);
 
 
 	// Create rasterizer states 
@@ -38,14 +38,14 @@ sturdy_guacamole::Graphics::Graphics()
 		CD3D11_RASTERIZER_DESC rasterizerDesc{ D3D11_DEFAULT };
 		rasterizerDesc.FrontCounterClockwise = TRUE;
 		rasterizerDesc.DepthClipEnable = FALSE;
-		ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState.solid));
+		ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &m_rsstate.solid));
 
 		rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
-		ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState.wireframe));
+		ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &m_rsstate.wireframe));
 	}
 
 	// Set the default rasterizer state
-	g_pDeviceContext->RSSetState(rasterizerState.solid.Get());
+	g_pDeviceContext->RSSetState(m_rsstate.solid.Get());
 
 	// Create depth stencil state
 	static ComPtr<ID3D11DepthStencilState> depthStencilState{};
