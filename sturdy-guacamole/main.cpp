@@ -287,6 +287,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ThrowIfFailed(g_pDevice->CreateTexture2D(&dsBufDesc, nullptr, &dsBuffer));
 
 			CD3D11_DEPTH_STENCIL_VIEW_DESC dsviewDesc{ D3D11_DSV_DIMENSION_TEXTURE2D };
+
+			D3D11_DEPTH_STENCIL_DESC dsDesc{};
 			ThrowIfFailed(g_pDevice->CreateDepthStencilView(dsBuffer.Get(), &dsviewDesc, &Graphics::Get().m_dsview.main));
 
 			// Set new viewport

@@ -26,7 +26,7 @@ sturdy_guacamole::Graphics::Graphics()
 
 	// Set the default rasterizer state
 	this->InitRasterizerStates();
-	g_pDeviceContext->RSSetState(m_rsstate.solid.Get());
+	g_pDeviceContext->RSSetState(m_rsstate.wireframe.Get());
 
 	// Set the default depth stencil state
 	this->InitDepthStencilStates();
@@ -61,7 +61,6 @@ void sturdy_guacamole::Graphics::InitRasterizerStates()
 	// Create default rasterizer desciption
 	CD3D11_RASTERIZER_DESC rasterizerDesc{ D3D11_DEFAULT };
 	rasterizerDesc.FrontCounterClockwise = TRUE;
-	rasterizerDesc.DepthClipEnable = FALSE;
 
 	// Create rasterizer state that draw solid polygons
 	ThrowIfFailed(g_pDevice->CreateRasterizerState(&rasterizerDesc, &m_rsstate.solid));
