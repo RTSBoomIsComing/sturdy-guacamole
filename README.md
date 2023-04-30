@@ -30,10 +30,16 @@ The external libraries we will be using are as follows:
 We are currently using an open-source library, tinygltf as our glTF loader.
 
 ## result so far
-![result so far](https://user-images.githubusercontent.com/61501369/234824866-c81960a1-43cd-4771-bd50-b4c2802fdf72.png)
+![result 2023-04-30 231713](https://user-images.githubusercontent.com/61501369/235360957-55e77a47-7116-42f1-948e-abf57b0f920e.png)
 
-Now we can load from glTF and draw 3d models, 
-but just with POSITION attributes. Other attributes are discarded.
+Now we can load from glTF and draw 3d models.
+The depth stencil buffer applied.
+POSITION, NORMAL, TEXCOORD attributes are dealt.
+But more features are needed to visualize and test those.
+
+POSITION range of above image is [0, 1]. 
+Vertices are so close each other that depth buffer seem to be working wrong. 
+Therefore the feature scailing models is needed. (this feature is related to animation)
 
 ## TODO
 1. implement direct lighting. e.g. PBR, Material, Light
