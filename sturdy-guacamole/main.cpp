@@ -62,16 +62,20 @@ int main()
 	// Initialize Graphics singleton instance
 	sturdy_guacamole::Graphics gfx{};
 
+	// Set the viewport
+	RECT rect{};
+	::GetClientRect(win32App.GetWindowHandle(), &rect); // left and top are always 0
+	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(rect.right), static_cast<float>(rect.bottom) };
+	g_pDeviceContext->RSSetViewports(1, &viewport);
+
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Triangle\\glTF\\Triangle.gltf"
+	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Avocado\\glTF\\Avocado.gltf"
 	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf" };
 
 	// Load glTF model
 	sturdy_guacamole::GLTFModel gltfModel{ gltfPath };
-
-	Vector3 viewerPos{ 0.0f, 0.0f, 1.0f };
-	Vector3 viewerRot{ 0.0f, 0.0f, 0.0f };
 
 	// Create common constant buffer
 	CD3D11_BUFFER_DESC bufferDesc{ sizeof(sturdy_guacamole::CommonConstants), D3D11_BIND_CONSTANT_BUFFER,
@@ -114,6 +118,9 @@ int main()
 		using ButtonState = DirectX::Mouse::ButtonStateTracker::ButtonState;
 		auto mouse_state = mouse->GetState();
 
+		// Control the camera (viewer) position and rotation
+		static Vector3 viewerPos{ 0.0f, 0.0f, 1.0f };
+		static Vector3 viewerRot{ 0.0f, 0.0f, 0.0f };
 		if (mouse_state.positionMode == DirectX::Mouse::MODE_RELATIVE)
 		{
 			viewerRot.x -= float(mouse_state.y) * 0.3f * deltaTime;
@@ -169,8 +176,11 @@ int main()
 
 		// create view, projection matrix
 		Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);
+
+		RECT rect{};
+		::GetClientRect(win32App.GetWindowHandle(), &rect); // left and top are always 0
 		Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
-			DirectX::XMConvertToRadians(90.0f), 1280.0f / 960.0f, 0.1f, 100.0f);
+			DirectX::XMConvertToRadians(90.0f), float(rect.right) / float(rect.bottom), 0.1f, 100.0f);
 
 		sturdy_guacamole::CommonConstants commonConstants{};
 		commonConstants.ViewerPos = Vector4{ viewerPos };
@@ -259,7 +269,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_SIZE:
 		if (g_pDevice && wParam != SIZE_MINIMIZED)
-			sturdy_guacamole::Dx11Application::ResizeRenderTarget();
+			sturdy_guacamole::Dx11Application::ResizeRenderTarget(LOWORD(lParam), HIWORD(lParam));
 		return 0;
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu

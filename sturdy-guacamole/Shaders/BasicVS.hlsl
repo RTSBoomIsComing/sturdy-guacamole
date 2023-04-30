@@ -20,15 +20,19 @@ cbuffer CommonConstants : register(b1)
 
 struct VSInput
 {
-	float3 position : POSITION;
-	float3 normal : NORMAL;
-	float2 texCoord : TEXCOORD0;
+	float3 position	: POSITION;
+	float3 normal	: NORMAL;
+	//float3 tangent	: TANGENT;
+	float2 texCoord	: TEXCOORD0;
 };
 
 struct VSOutput
 {
 	float4 position : SV_POSITION;
 	float3 worldPos : POSITION;
+	float3 normal : NORMAL;
+	//float3 tangent : TANGENT;
+	float2 texCoord : TEXCOORD0;
 };
 
 VSOutput main(VSInput vsInput) 

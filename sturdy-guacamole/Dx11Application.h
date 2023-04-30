@@ -28,7 +28,7 @@ namespace sturdy_guacamole
 		static ID3D11RenderTargetView* GetRenderTargetView() { return GetInstance().m_renderTargetView.Get(); }
 
 	public:
-		static void ResizeRenderTarget();
+		static void ResizeRenderTarget(UINT newWidth, UINT newHeight);
 	};
 }
 

@@ -1,19 +1,16 @@
 #pragma once
 #include <d3d11.h>
-#include <comdef.h>
+#include <wrl/client.h>
+using Microsoft::WRL::ComPtr;
 
+#include <filesystem>
 
 namespace sturdy_guacamole
 {
-	inline void ThrowIfFailed(HRESULT hr)
-	{
-		if (FAILED(hr))
-		{
-			_com_error err(hr);
-			LPCTSTR errMsg = err.ErrorMessage();
-			::OutputDebugString(errMsg);
+	inline void ThrowIfFailed(HRESULT hr);
+	
+	ComPtr<ID3DBlob> CreateShaderBlob(std::filesystem::path csoPath);
 
-			throw hr;
-		}
-	}
+	ComPtr<ID3D11VertexShader> CreateVertexShader(ID3D11Device* pDevice, ID3DBlob* pVSBlob);
+	ComPtr<ID3D11PixelShader> CreatePixelShader(ID3D11Device* pDevice, ID3DBlob* pPSBlob);
 }

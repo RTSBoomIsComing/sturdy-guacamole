@@ -14,6 +14,9 @@ struct VSOutput
 {
 	float4 position : SV_POSITION;
 	float3 worldPos : POSITION;
+	float3 normal : NORMAL;
+	//float3 tangent : TANGENT;
+	float2 texCoord : TEXCOORD0;
 };
 
 float4 main(VSOutput vsOutput) : SV_Target0

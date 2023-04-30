@@ -14,9 +14,26 @@ namespace sturdy_guacamole
 		Graphics();
 		~Graphics() = default;
 
-	private:
-		ComPtr<ID3DBlob> CreateShaderBlob(std::filesystem::path csoFilePath);
-		ComPtr<ID3D11VertexShader> CreateVertexShader(std::filesystem::path csoFilePath, ID3D11InputLayout** ppInputLayout = nullptr, const D3D11_INPUT_ELEMENT_DESC* inputElementDescs = nullptr, UINT numElements = 0);
-		ComPtr<ID3D11PixelShader> CreatePixelShader(std::filesystem::path csoFilePath);
+	public:
+		struct
+		{
+			ComPtr<ID3DBlob> basic{};
+		} vsBlob;
+
+		struct
+		{
+			ComPtr<ID3D11VertexShader> basic{};
+		} vtxShader;
+
+		struct
+		{
+			ComPtr<ID3D11PixelShader> basic{};
+		} pixShader;
+
+		struct
+		{
+			ComPtr<ID3D11RasterizerState> solid{};
+			ComPtr<ID3D11RasterizerState> wireframe{};
+		} rasterizerState;
 	};
 }

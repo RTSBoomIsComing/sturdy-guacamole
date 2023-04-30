@@ -16,11 +16,10 @@ namespace sturdy_guacamole
 {
 	class GLTFModel;
 
-	// this class deal with the mesh primitive of glTF
 	class GLTFPrimitive
 	{
 	public:
-		GLTFPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
+		GLTFPrimitive(const tinygltf::Model& tinyModel, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
 		~GLTFPrimitive() = default;
 		void Draw(ID3D11DeviceContext* pDeviceContext) const;
 		void DrawInstanced(ID3D11DeviceContext* pDeviceContext, UINT instanceCount);
@@ -42,7 +41,8 @@ namespace sturdy_guacamole
 		std::vector<UINT> m_vertexBufferStrides{};
 		std::vector<UINT> m_vertexBufferOffsets{};
 
-		std::vector<D3D11_INPUT_ELEMENT_DESC> m_inputElementDescs{};
+		// used in ID3D11Device::IASetInputLayout();
+		ComPtr<ID3D11InputLayout> m_inputLayout{};
 
 		// used in ID3D11DeviceContext::IASetPrimitiveTopology();
 		D3D11_PRIMITIVE_TOPOLOGY m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

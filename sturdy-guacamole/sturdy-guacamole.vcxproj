@@ -132,6 +132,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Dx11Application.cpp" />
+    <ClCompile Include="Dx11Helpers.cpp" />
     <ClCompile Include="GLTFBufferView.cpp" />
     <ClCompile Include="GLTFModel.cpp" />
     <ClCompile Include="GLTFNode.cpp" />

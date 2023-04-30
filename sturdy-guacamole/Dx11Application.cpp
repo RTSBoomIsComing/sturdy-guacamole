@@ -47,7 +47,7 @@ sturdy_guacamole::Dx11Application::Dx11Application(HWND hWnd)
 		throw std::runtime_error("Failed to create render target view.");
 }
 
-void sturdy_guacamole::Dx11Application::ResizeRenderTarget()
+void sturdy_guacamole::Dx11Application::ResizeRenderTarget(UINT newWidth, UINT newHeight)
 {
 	// Release render target view
 	GetInstance().m_renderTargetView = nullptr;
@@ -59,4 +59,8 @@ void sturdy_guacamole::Dx11Application::ResizeRenderTarget()
 	ComPtr<ID3D11Texture2D> backBuffer;
 	GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
 	GetDevice()->CreateRenderTargetView(backBuffer.Get(), nullptr, &GetInstance().m_renderTargetView);
+
+	// Set viewport
+	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(newWidth), static_cast<float>(newHeight) };
+	g_pDeviceContext->RSSetViewports(1, &viewport);
 }
