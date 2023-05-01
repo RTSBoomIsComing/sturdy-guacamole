@@ -30,11 +30,12 @@ The external libraries we will be using are as follows:
 We are currently using an open-source library, tinygltf as our glTF loader.
 
 ## result so far
-![result 2023-05-01 170947](https://user-images.githubusercontent.com/61501369/235427110-63ae5eb2-fd8a-4e5a-b6ea-d2020925b8f1.png)
+![result 2023-05-01 235327](https://user-images.githubusercontent.com/61501369/235472225-abb0e895-c29f-4081-b4fe-7347d73c637b.png)
 
 ## Done
 Load from glTF and draw 3d models.
 Draw normal vectors of model. (On/Off)
+Show loaded images. (prepare for implementing Material)
 
 ## TODO
 1. implement direct lighting. e.g. PBR, Material, Light
