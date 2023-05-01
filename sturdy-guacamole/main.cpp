@@ -67,7 +67,9 @@ int main()
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Triangle\\glTF\\Triangle.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Avocado\\glTF\\Avocado.gltf"
-	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf" };
+	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"
+	
+	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf" };
 
 	// Load glTF model
 	sturdy_guacamole::GLTFModel gltfModel{ gltfPath };
@@ -259,7 +261,13 @@ int main()
 		ImGui::Checkbox("On", &bDrawNormals);
 		ImGui::SameLine();
 		ImGui::SliderFloat("Scale", &normalGSConstants.Scale, 0.0f, 0.01f);
+		ImGui::End();
 
+		ImGui::Begin("Images");
+		for (const auto& image : gltfModel.m_images)
+		{
+			ImGui::Image(image.Get(), ImVec2(256, 256));
+		}
 		ImGui::End();
 
 		ImGui::Render();

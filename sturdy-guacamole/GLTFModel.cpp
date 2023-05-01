@@ -1,5 +1,6 @@
 #include "GLTFModel.h"	
-
+#include "Dx11Application.h"
+#include "Dx11Helpers.h"
 // include tiny_gltf
 #pragma warning( disable : 4996 )
 #undef min
@@ -10,7 +11,6 @@
 #define TINYGLTF_NOEXCEPTION
 #define JSON_NOEXCEPTION
 #include <tiny_gltf.h>
-
 #include <iostream>
 #include <cassert>
 
@@ -48,6 +48,41 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 	for (const auto& tinyScene : tinyModel.scenes)
 	{
 		m_scenes.push_back(GLTFScene{ tinyScene, *this });
+	}
+
+	// populate images
+	m_images.reserve(tinyModel.images.size());
+	m_d3dtexture.reserve(tinyModel.images.size());
+	for (size_t i{}; i < tinyModel.images.size(); i++)
+	{
+		const auto& tinyImage = tinyModel.images[i];
+
+
+		DXGI_FORMAT format{};
+		switch (tinyImage.bits)
+		{
+		case 8:
+			format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI_FORMAT_R8G8B8A8_TYPELESS
+			break;
+		case 16:
+			format = DXGI_FORMAT_R16G16B16A16_UINT;
+			break;
+		}
+
+		ComPtr<ID3D11Texture2D> tex2d{};
+		ComPtr<ID3D11ShaderResourceView> srv{};
+		CD3D11_TEXTURE2D_DESC desc{ format, (UINT)tinyImage.width, (UINT)tinyImage.height, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_IMMUTABLE };
+		D3D11_SUBRESOURCE_DATA initData{};
+		const void* pSysMem = const_cast<unsigned char*>(tinyImage.image.data());
+		initData.pSysMem = tinyImage.image.data(); //&tinyImage.image[0];
+		initData.SysMemPitch = tinyImage.width * (tinyImage.bits / 8) * tinyImage.component;
+		initData.SysMemSlicePitch = 0;
+		
+		ThrowIfFailed(g_pDevice->CreateTexture2D(&desc, &initData, &tex2d));
+		ThrowIfFailed(g_pDevice->CreateShaderResourceView(tex2d.Get(), nullptr, &srv));
+
+		m_d3dtexture.push_back(tex2d);
+		m_images.push_back(srv);
 	}
 }
 

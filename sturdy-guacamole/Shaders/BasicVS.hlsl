@@ -43,7 +43,7 @@ VSOutput main(VSInput vsInput)
 	vsOutput.worldPos = mul(WorldMatrix, position).xyz;
 	vsOutput.position = mul(ViewProjMatrix, float4(vsOutput.worldPos, 1.0));
 	
-	vsOutput.normal = mul(WorldIT, float4(vsInput.normal, 1.0));
+	vsOutput.normal = mul(WorldIT, float4(vsInput.normal, 0.0)).xyz;
 	vsOutput.normal = normalize(vsOutput.normal);
 	
 	//vsOutput.tangent = mul(World, tangent);
