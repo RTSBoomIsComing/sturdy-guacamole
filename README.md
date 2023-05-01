@@ -30,12 +30,11 @@ The external libraries we will be using are as follows:
 We are currently using an open-source library, tinygltf as our glTF loader.
 
 ## result so far
-![result 2023-04-30 231713](https://user-images.githubusercontent.com/61501369/235360957-55e77a47-7116-42f1-948e-abf57b0f920e.png)
+![result 2023-05-01 170947](https://user-images.githubusercontent.com/61501369/235427110-63ae5eb2-fd8a-4e5a-b6ea-d2020925b8f1.png)
 
-Now we can load from glTF and draw 3d models.
-The depth stencil buffer applied.
-POSITION, NORMAL, TEXCOORD attributes are dealt.
-But more features are needed to visualize and test those.
+## Done
+Load from glTF and draw 3d models.
+Draw normal vectors of model. (On/Off)
 
 ## TODO
 1. implement direct lighting. e.g. PBR, Material, Light
