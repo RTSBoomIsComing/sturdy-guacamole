@@ -28,6 +28,11 @@ namespace sturdy_guacamole
 
 		struct
 		{
+			ComPtr<ID3D11GeometryShader> normal{};
+		} m_geoShader;
+
+		struct
+		{
 			ComPtr<ID3D11RasterizerState> solid{};
 			ComPtr<ID3D11RasterizerState> wireframe{};
 		} m_rsstate; // rasterizer state
@@ -50,6 +55,7 @@ namespace sturdy_guacamole
 	private:
 		void InitVertexShaders(std::filesystem::path baseDir);
 		void InitPixelShaders(std::filesystem::path baseDir);
+		void InitGeometryShaders(std::filesystem::path baseDir);
 		void InitRasterizerStates();
 		void InitDepthStencilStates();
 		void InitRenderTargetViews();

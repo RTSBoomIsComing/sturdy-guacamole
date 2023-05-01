@@ -45,15 +45,23 @@ sturdy_guacamole::Graphics::Graphics()
 void sturdy_guacamole::Graphics::InitVertexShaders(std::filesystem::path baseDir)
 {
 	// Create basic vertex shader
-	m_vtxShader.basic_blob = CreateShaderBlob(baseDir / L"BasicVS.cso");
-	m_vtxShader.basic = CreateVertexShader(g_pDevice.Get(), m_vtxShader.basic_blob.Get());
+	auto vsBlob = CreateShaderBlob(baseDir / L"BasicVS.cso");
+	m_vtxShader.basic_blob = vsBlob;
+	ThrowIfFailed(g_pDevice->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_vtxShader.basic));
 }
 
 void sturdy_guacamole::Graphics::InitPixelShaders(std::filesystem::path baseDir)
 {
 	// Create basic pixel shader
-	auto psblob = CreateShaderBlob(baseDir / L"BasicPS.cso");
-	m_pixShader.basic = CreatePixelShader(g_pDevice.Get(), psblob.Get());
+	auto psBlob = CreateShaderBlob(baseDir / L"BasicPS.cso");
+	ThrowIfFailed(g_pDevice->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_pixShader.basic));
+}
+
+void sturdy_guacamole::Graphics::InitGeometryShaders(std::filesystem::path baseDir)
+{
+	// Create normal geometry shader
+	auto gsBlob = CreateShaderBlob(baseDir / L"NormalGS.cso");
+	ThrowIfFailed(g_pDevice->CreateGeometryShader(gsBlob->GetBufferPointer(), gsBlob->GetBufferSize(), nullptr, &m_geoShader.normal));
 }
 
 void sturdy_guacamole::Graphics::InitRasterizerStates()
