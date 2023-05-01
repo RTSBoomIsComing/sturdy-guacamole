@@ -52,7 +52,9 @@ namespace sturdy_guacamole
 		void ProcessIndices(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
 		void ProcessAttributes(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
 		bool SetPrimitiveTopology(const tinygltf::Primitive& primitive);
-		UINT ProcessVertexBuffer(const GLTFBufferView& myBufView, UINT byteLength);
+		void AddVertexBuffer(const GLTFBufferView& myBufView, UINT byteLength);
+		void AddDummyVertexBuffer();
+		UINT FindVertexBuffer(const ID3D11Buffer* pVertexBuffer) const;
 	};
 }
 

@@ -20,4 +20,9 @@ namespace sturdy_guacamole
 
 		DirectX::SimpleMath::Vector4 ViewerPos{};		// World space viewer position
 	};
+
+	struct alignas(16) NormalGSConstants
+	{
+		float Scale{ 0.01f };
+	};
 }

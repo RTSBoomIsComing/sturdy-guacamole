@@ -37,6 +37,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 int main()
 {
 	using namespace DirectX::SimpleMath;
+	using sturdy_guacamole::ThrowIfFailed;
 
 	// Initialize win32 application singleton instance
 	sturdy_guacamole::Win32Application win32App{};
@@ -48,7 +49,7 @@ int main()
 	sturdy_guacamole::Dx11Application dx11App{ win32App.m_hWnd };
 
 	// Create imgui application
-	sturdy_guacamole::ImguiApplication imguiApp{ win32App.m_hWnd, dx11App.m_device.Get(), dx11App.m_deviceContext.Get()};
+	sturdy_guacamole::ImguiApplication imguiApp{ win32App.m_hWnd, dx11App.m_device.Get(), dx11App.m_deviceContext.Get() };
 
 	// Initialize mouse singleton instance
 	std::unique_ptr<DirectX::Mouse> mouse = std::make_unique<DirectX::Mouse>();
@@ -76,17 +77,18 @@ int main()
 		D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE };
 
 	ComPtr<ID3D11Buffer> commonConstantBuffer;
-	HRESULT hr = g_pDevice->CreateBuffer(&bufferDesc, nullptr, &commonConstantBuffer);
-	if (FAILED(hr))
-		throw hr;
+	ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &commonConstantBuffer));
+
 
 	// Create mesh constant buffer
 	bufferDesc.ByteWidth = sizeof(sturdy_guacamole::MeshConstants);
-
 	ComPtr<ID3D11Buffer> meshConstantBuffer;
-	hr = g_pDevice->CreateBuffer(&bufferDesc, nullptr, &meshConstantBuffer);
-	if (FAILED(hr))
-		throw hr;
+	ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &meshConstantBuffer));
+
+	// Create GSConstant Buffer
+	bufferDesc.ByteWidth = sizeof(sturdy_guacamole::NormalGSConstants);
+	ComPtr<ID3D11Buffer> normalGSConstantBuffer;
+	ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &normalGSConstantBuffer));
 
 	// Main message loop
 	bool quit{};
@@ -156,19 +158,20 @@ int main()
 		if (kb_state.C)
 			viewerPos -= viewerUp * deltaTime;
 
-		
+
 		// Clear the back buffer
 		float clear_color[]{ 0.0f, 0.2f, 0.4f, 1.0f };
 		g_pDeviceContext->ClearRenderTargetView(gfx.m_rtview.main.Get(), clear_color);
 		g_pDeviceContext->ClearDepthStencilView(gfx.m_dsview.main.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
 		g_pDeviceContext->OMSetRenderTargets(1, gfx.m_rtview.main.GetAddressOf(), gfx.m_dsview.main.Get());
+
+
 
 		// create view, projection matrix
 		Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);
 
 		Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
-			DirectX::XMConvertToRadians(90.0f), float(win32App.m_width) / float(win32App.m_height), 0.1f, 100.0f);
+			DirectX::XMConvertToRadians(90.0f), float(win32App.m_width) / float(win32App.m_height), 0.01f, 100.0f);
 
 		sturdy_guacamole::CommonConstants commonConstants{};
 		commonConstants.ViewerPos = Vector4{ viewerPos };
@@ -182,14 +185,23 @@ int main()
 		::memcpy(mappedResource.pData, &commonConstants, sizeof(commonConstants));
 		g_pDeviceContext->Unmap(commonConstantBuffer.Get(), 0);
 
-
-
-		//  Set constant buffer
+		//  Set vertex shader constant buffer
 		ID3D11Buffer* pConstantBuffers[] = {
 			meshConstantBuffer.Get(),
 			commonConstantBuffer.Get(),
 		};
 		g_pDeviceContext->VSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
+
+		// Update geometry shader constant buffer
+		static bool bDrawNormals{};
+		static sturdy_guacamole::NormalGSConstants normalGSConstants{};
+		g_pDeviceContext->Map(normalGSConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		::memcpy(mappedResource.pData, &normalGSConstants, sizeof(normalGSConstants));
+		g_pDeviceContext->Unmap(normalGSConstantBuffer.Get(), 0);
+
+		// Set geometry shader constant buffer
+		pConstantBuffers[0] = normalGSConstantBuffer.Get();
+		g_pDeviceContext->GSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
 
 		// Start rendering
 		for (const auto& scene : gltfModel.m_scenes)
@@ -213,7 +225,20 @@ int main()
 					{
 						for (const auto& primitive : step.m_node->m_mesh->m_meshPrimitives)
 						{
+							// set primitive topology
+							g_pDeviceContext->IASetPrimitiveTopology(primitive.m_primitiveTopology);
 							primitive.Draw(g_pDeviceContext.Get());
+
+							if (bDrawNormals)
+							{
+								// set input layout
+								g_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+								g_pDeviceContext->GSSetShader(gfx.m_geoShader.normal.Get(), nullptr, 0);
+								g_pDeviceContext->PSSetShader(gfx.m_pixShader.normal.Get(), nullptr, 0);
+								primitive.Draw(g_pDeviceContext.Get());
+								g_pDeviceContext->GSSetShader(nullptr, nullptr, 0);
+								g_pDeviceContext->PSSetShader(gfx.m_pixShader.basic.Get(), nullptr, 0);
+							}
 						}
 					}
 				}
@@ -229,6 +254,12 @@ int main()
 		ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
 		ImGui::Text("delta time: %f", ImGui::GetIO().DeltaTime);
 		ImGui::DragFloat3("viewerRot", reinterpret_cast<float*>(&viewerRot));
+
+		ImGui::Text("Draw normals");
+		ImGui::Checkbox("On", &bDrawNormals);
+		ImGui::SameLine();
+		ImGui::SliderFloat("Scale", &normalGSConstants.Scale, 0.0f, 0.01f);
+
 		ImGui::End();
 
 		ImGui::Render();
@@ -278,7 +309,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			ComPtr<ID3D11Texture2D> backBuffer;
 			g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-			
+
 			g_pDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, &Graphics::Get().m_rtview.main);
 
 			// Create the main depth stencil view

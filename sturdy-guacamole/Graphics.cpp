@@ -24,6 +24,10 @@ sturdy_guacamole::Graphics::Graphics()
 	this->InitPixelShaders(OutDir);
 	g_pDeviceContext->PSSetShader(m_pixShader.basic.Get(), nullptr, 0);
 
+	// Set the default geometry shader
+	this->InitGeometryShaders(OutDir);
+	g_pDeviceContext->GSSetShader(nullptr, nullptr, 0);
+
 	// Set the default rasterizer state
 	this->InitRasterizerStates();
 	g_pDeviceContext->RSSetState(m_rsstate.wireframe.Get());
@@ -55,6 +59,10 @@ void sturdy_guacamole::Graphics::InitPixelShaders(std::filesystem::path baseDir)
 	// Create basic pixel shader
 	auto psBlob = CreateShaderBlob(baseDir / L"BasicPS.cso");
 	ThrowIfFailed(g_pDevice->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_pixShader.basic));
+
+	// Create normal pixel shader
+	psBlob = CreateShaderBlob(baseDir / L"NormalPS.cso");
+	ThrowIfFailed(g_pDevice->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_pixShader.normal));
 }
 
 void sturdy_guacamole::Graphics::InitGeometryShaders(std::filesystem::path baseDir)

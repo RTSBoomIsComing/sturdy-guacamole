@@ -24,6 +24,7 @@ namespace sturdy_guacamole
 		struct
 		{
 			ComPtr<ID3D11PixelShader> basic{};
+			ComPtr<ID3D11PixelShader> normal{};
 		} m_pixShader;
 
 		struct
