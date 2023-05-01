@@ -42,7 +42,10 @@ VSOutput main(VSInput vsInput)
 	float4 position = float4(vsInput.position, 1.0);
 	vsOutput.worldPos = mul(WorldMatrix, position).xyz;
 	vsOutput.position = mul(ViewProjMatrix, float4(vsOutput.worldPos, 1.0));
+	
 	vsOutput.normal = mul(WorldIT, float4(vsInput.normal, 1.0));
+	vsOutput.normal = normalize(vsOutput.normal);
+	
 	//vsOutput.tangent = mul(World, tangent);
 	vsOutput.uv = vsInput.uv;
 	return vsOutput;
