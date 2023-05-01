@@ -15,6 +15,8 @@ namespace sturdy_guacamole
 		// Start the Dear ImGui frame
 		void NewFrame();
 	};
+
+	using ImguiApp = ImguiApplication;
 }
 
 

@@ -71,83 +71,79 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 
 	const auto& attributes = primitive.attributes;
 
-	for (const auto& [attribute_name, accessor_idx] : attributes)
+	// Process POSITION attribute
 	{
+		const int accessor_idx = attributes.at("POSITION");
 		const auto& accessor = tinyModel.accessors[accessor_idx];
-		const int bufferViewIdx = accessor.bufferView;
-		const auto& myBufferView = myModel.m_bufferViews[bufferViewIdx];
+		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
-		D3D11_INPUT_ELEMENT_DESC inputElementDesc{};
-		if (attribute_name.find("POSITION") != std::string::npos)
-		{
-			inputElementDesc.SemanticName = "POSITION";
-			inputElementDesc.SemanticIndex = 0;
+		D3D11_INPUT_ELEMENT_DESC ieDesc{};
+		ieDesc.SemanticName = "POSITION";
+		ieDesc.SemanticIndex = 0;
+		ieDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT; // POSITION, NORMAL, TANGENT are always float3
+		ieDesc.InputSlot = this->ProcessVertexBuffer(myBufView, 12u);
+		ieDesc.AlignedByteOffset = (UINT)accessor.byteOffset;
+		ieDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-			// POSITION, NORMAL, TANGENT are always float3
-			inputElementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		}
-		else if (attribute_name.find("NORMAL") != std::string::npos)
-		{
-			inputElementDesc.SemanticName = "NORMAL";
-			inputElementDesc.SemanticIndex = 0;
+		inputElementDescs.push_back(ieDesc);
+	}
 
-			// POSITION, NORMAL, TANGENT are always float3
-			inputElementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		}
-		else if (attribute_name.find("TEXCOORD") != std::string::npos)
-		{
-			inputElementDesc.SemanticName = "TEXCOORD";
-			inputElementDesc.SemanticIndex = std::stoi(attribute_name.substr(attribute_name.find('_') + 1));
+	// Process Normal attribute
+	if (attributes.contains("NORMAL"))
+	{
+		const int accessor_idx = attributes.at("NORMAL");
+		const auto& accessor = tinyModel.accessors[accessor_idx];
+		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
-			switch (accessor.componentType)
-			{
-			case TINYGLTF_COMPONENT_TYPE_FLOAT:
-				inputElementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
-				break;
-			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-				inputElementDesc.Format = DXGI_FORMAT_R8G8_UNORM;
-				break;
-			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-				inputElementDesc.Format = DXGI_FORMAT_R16G16_UNORM;
-				break;
-			default:
-				assert("wrong texcoord format. See the glTF 2.0 specification");
-			}
-		}
-		else
-		{
-			std::cout << "does not support attribute: " << attribute_name << std::endl;
-			continue;
-		}
+		D3D11_INPUT_ELEMENT_DESC ieDesc{};
+		ieDesc.SemanticName = "NORMAL";
+		ieDesc.SemanticIndex = 0;
+		ieDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT; // POSITION, NORMAL, TANGENT are always float3
+		ieDesc.InputSlot = this->ProcessVertexBuffer(myBufView, 12u);
+		ieDesc.AlignedByteOffset = (UINT)accessor.byteOffset;
+		ieDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-		ID3D11Buffer* pBuffer = myBufferView.m_buffer.Get();
-		UINT inputSlot{};
-		for (; inputSlot < m_vertexBuffers.size(); ++inputSlot)
-		{
-			if (m_vertexBuffers[inputSlot] == pBuffer)
-				break;
-		}
+		inputElementDescs.push_back(ieDesc);
+	}
 
-		if (inputSlot == m_vertexBuffers.size())
+	if (attributes.contains("TEXCOORD_0"))
+	{
+		const int accessor_idx = attributes.at("TEXCOORD_0");
+		const auto& accessor = tinyModel.accessors[accessor_idx];
+		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
+		D3D11_INPUT_ELEMENT_DESC ieDesc{};
+		ieDesc.SemanticName = "TEXCOORD";
+		ieDesc.SemanticIndex = 0;
+
+		UINT byteLength{};
+		switch (accessor.componentType)
 		{
-			// if not found
-			m_vertexBuffers.push_back(pBuffer);
-			m_vertexBufferStrides.push_back(accessor.ByteStride(tinyModel.bufferViews[bufferViewIdx])); //myBufferView.m_byteStride
-			m_vertexBufferOffsets.push_back(0); // byte offset is already applied in GLTFBufferView
+		case TINYGLTF_COMPONENT_TYPE_FLOAT:
+			ieDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+			byteLength = 8u;
+			break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+			ieDesc.Format = DXGI_FORMAT_R8G8_UNORM;
+			byteLength = 2u;
+			break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+			ieDesc.Format = DXGI_FORMAT_R16G16_UNORM;
+			byteLength = 4u;
+			break;
+		default:
+			assert("wrong texcoord format. See the glTF 2.0 specification");
 		}
 
-		inputElementDesc.InputSlot = inputSlot;
-		inputElementDesc.AlignedByteOffset = (UINT)accessor.byteOffset;
-		inputElementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-
-		inputElementDescs.push_back(inputElementDesc);
+		ieDesc.InputSlot = this->ProcessVertexBuffer(myBufView, byteLength);
+		ieDesc.AlignedByteOffset = (UINT)accessor.byteOffset;
+		ieDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		inputElementDescs.push_back(ieDesc);
 	}
 
 	// create input layout
 	const auto& vsBlob = Graphics::Get().m_vtxShader.basic_blob;
-	HRESULT hr = g_pDevice->CreateInputLayout(inputElementDescs.data(), (UINT)inputElementDescs.size(),
-		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout);
-	ThrowIfFailed(hr);
+	ThrowIfFailed(g_pDevice->CreateInputLayout(inputElementDescs.data(), (UINT)inputElementDescs.size(),
+		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout));
 }
 
 bool sturdy_guacamole::GLTFPrimitive::SetPrimitiveTopology(const tinygltf::Primitive& primitive)
@@ -183,4 +179,27 @@ bool sturdy_guacamole::GLTFPrimitive::SetPrimitiveTopology(const tinygltf::Primi
 	}
 
 	return res;
+}
+
+UINT sturdy_guacamole::GLTFPrimitive::ProcessVertexBuffer(const GLTFBufferView& myBufView, UINT byteLength)
+{
+	ID3D11Buffer* pBuffer = myBufView.m_buffer.Get();
+	UINT inputSlot{};
+	for (; inputSlot < m_vertexBuffers.size(); ++inputSlot)
+	{
+		if (m_vertexBuffers[inputSlot] == pBuffer)
+			break;
+	}
+
+	// if new buffer, add to the list
+	if (inputSlot == m_vertexBuffers.size())
+	{
+		m_vertexBuffers.push_back(pBuffer);
+		m_vertexBufferOffsets.push_back(0); // byte offset is already applied in GLTFBufferView
+
+		UINT byteStride = (myBufView.m_byteStride > 0) ? myBufView.m_byteStride : byteLength;
+		m_vertexBufferStrides.push_back(byteStride);
+	}
+
+	return inputSlot;
 }
