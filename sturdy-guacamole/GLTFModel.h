@@ -36,7 +36,6 @@ namespace sturdy_guacamole
 		std::vector<GLTFNode> m_nodes{};
 		std::vector<GLTFScene> m_scenes{};
 		std::vector<ComPtr<ID3D11ShaderResourceView>> m_images{};
-		std::vector<ComPtr<ID3D11Texture2D>> m_d3dtexture{};
 
 	private:
 		bool LoadModel(tinygltf::Model& outModel, const std::filesystem::path& path);

@@ -1,4 +1,5 @@
 #include "GLTFModel.h"	
+#include "GLTFDx11Helpers.h"
 #include "Dx11Application.h"
 #include "Dx11Helpers.h"
 // include tiny_gltf
@@ -52,19 +53,9 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 
 	// populate images
 	m_images.reserve(tinyModel.images.size());
-	m_d3dtexture.reserve(tinyModel.images.size());
 	for (const auto& tinyImage : tinyModel.images)
 	{
-		DXGI_FORMAT format{};
-		switch (tinyImage.bits)
-		{
-		case 8:
-			format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			break;
-		case 16:
-			format = DXGI_FORMAT_R16G16B16A16_UINT;
-			break;
-		}
+		DXGI_FORMAT format = sturdy_guacamole::ConvertToDXGIFormat(tinyImage.pixel_type, tinyImage.component);
 
 		ComPtr<ID3D11Texture2D> tex2d{};
 		ComPtr<ID3D11ShaderResourceView> srv{};
@@ -73,12 +64,10 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 		const void* pSysMem = const_cast<unsigned char*>(tinyImage.image.data());
 		initData.pSysMem = tinyImage.image.data();
 		initData.SysMemPitch = tinyImage.width * (tinyImage.bits / 8) * tinyImage.component;
-		initData.SysMemSlicePitch = 0;
 		
 		ThrowIfFailed(g_pDevice->CreateTexture2D(&desc, &initData, &tex2d));
 		ThrowIfFailed(g_pDevice->CreateShaderResourceView(tex2d.Get(), nullptr, &srv));
 
-		m_d3dtexture.push_back(tex2d);
 		m_images.push_back(srv);
 	}
 }
