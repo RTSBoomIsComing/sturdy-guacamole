@@ -228,7 +228,7 @@ int main()
 						for (const auto& primitive : step.m_node->m_mesh->m_meshPrimitives)
 						{
 							// set primitive topology
-							g_pDeviceContext->IASetPrimitiveTopology(primitive.m_primitiveTopology);
+							g_pDeviceContext->IASetPrimitiveTopology(primitive.m_topology);
 							primitive.Draw(g_pDeviceContext.Get());
 
 							if (bDrawNormals)

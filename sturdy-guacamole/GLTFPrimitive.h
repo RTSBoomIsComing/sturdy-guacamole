@@ -27,33 +27,37 @@ namespace sturdy_guacamole
 
 
 	public:
-		// used in ID3D11DeviceContext::IASetIndexBuffer();
-		ID3D11Buffer* m_indexBuffer{};
-		DXGI_FORMAT m_indexBufferFormat = DXGI_FORMAT_R16_UINT; // or DXGI_FORMAT_R32_UINT
+		
+		struct // used in ID3D11DeviceContext::IASetIndexBuffer();
+		{
+			ID3D11Buffer* pBuffer{};
+			DXGI_FORMAT format = DXGI_FORMAT_R16_UINT; // or DXGI_FORMAT_R32_UINT
+			UINT offset{};	// would be always 0
 
-		// it would be always 0. once creating index buffer, the offset was already applied
-		UINT m_indexBufferOffset{};
-
-		// used in ID3D11DeviceContext::DrawIndexed();
-		UINT m_indexCount{};
+			// used in ID3D11DeviceContext::DrawIndexed();
+			UINT count{};	
+		} m_index;
 	
-		// used in ID3D11DeviceContext::IASetVertexBuffers();
-		std::vector<ID3D11Buffer*> m_vertexBuffers{};
-		std::vector<UINT> m_vertexBufferStrides{};
-		std::vector<UINT> m_vertexBufferOffsets{};
+		
+		struct // used in ID3D11DeviceContext::IASetVertexBuffers();
+		{
+			std::vector<ID3D11Buffer*> pBuffers{};
+			std::vector<UINT> strides{};
+			std::vector<UINT> offsets{};
+		} m_vertex;
 
 		// used in ID3D11Device::IASetInputLayout();
 		ComPtr<ID3D11InputLayout> m_inputLayout{};
 
 		// used in ID3D11DeviceContext::IASetPrimitiveTopology();
-		D3D11_PRIMITIVE_TOPOLOGY m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		D3D11_PRIMITIVE_TOPOLOGY m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	private:
 		void ProcessIndices(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
 		void ProcessAttributes(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel);
 		bool SetPrimitiveTopology(const tinygltf::Primitive& primitive);
 		void AddVertexBuffer(const GLTFBufferView& myBufView, UINT byteLength);
-		void AddDummyVertexBuffer();
+		void AddVertexBuffer(ID3D11Buffer* pBuffer, UINT stride, UINT offset);
 		UINT FindVertexBuffer(const ID3D11Buffer* pVertexBuffer) const;
 	};
 }
