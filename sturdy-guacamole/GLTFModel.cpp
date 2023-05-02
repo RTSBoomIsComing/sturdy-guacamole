@@ -53,16 +53,13 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 	// populate images
 	m_images.reserve(tinyModel.images.size());
 	m_d3dtexture.reserve(tinyModel.images.size());
-	for (size_t i{}; i < tinyModel.images.size(); i++)
+	for (const auto& tinyImage : tinyModel.images)
 	{
-		const auto& tinyImage = tinyModel.images[i];
-
-
 		DXGI_FORMAT format{};
 		switch (tinyImage.bits)
 		{
 		case 8:
-			format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI_FORMAT_R8G8B8A8_TYPELESS
+			format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			break;
 		case 16:
 			format = DXGI_FORMAT_R16G16B16A16_UINT;
@@ -74,7 +71,7 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 		CD3D11_TEXTURE2D_DESC desc{ format, (UINT)tinyImage.width, (UINT)tinyImage.height, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_IMMUTABLE };
 		D3D11_SUBRESOURCE_DATA initData{};
 		const void* pSysMem = const_cast<unsigned char*>(tinyImage.image.data());
-		initData.pSysMem = tinyImage.image.data(); //&tinyImage.image[0];
+		initData.pSysMem = tinyImage.image.data();
 		initData.SysMemPitch = tinyImage.width * (tinyImage.bits / 8) * tinyImage.component;
 		initData.SysMemSlicePitch = 0;
 		
