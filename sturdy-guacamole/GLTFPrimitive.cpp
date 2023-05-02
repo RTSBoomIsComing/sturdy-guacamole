@@ -1,5 +1,6 @@
 #include "GLTFPrimitive.h"
 #include "GLTFModel.h"
+#include "GLTFDx11Helpers.h"
 
 #include "Dx11Application.h"
 #include "Dx11Helpers.h"
@@ -11,11 +12,7 @@
 
 sturdy_guacamole::GLTFPrimitive::GLTFPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const GLTFModel& myModel)
 {
-	bool res = SetPrimitiveTopology(primitive);
-	if (!res)
-		throw std::exception("SetPrimitiveTopology() failed.");
-
-
+	m_topology = sturdy_guacamole::ConvertToDx11Topology(primitive.mode);
 	ProcessIndices(model, primitive, myModel);
 	ProcessAttributes(model, primitive, myModel);
 }
@@ -68,11 +65,12 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 	{
 		const int accessor_idx = attributes.at("POSITION");
 		const auto& accessor = tinyModel.accessors[accessor_idx];
+		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
 		const UINT inputSlot = this->FindVertexBuffer(myBufView.m_buffer.Get());
 		if (inputSlot == m_vertex.pBuffers.size())
-			this->AddVertexBuffer(myBufView, 12u);
+			this->AddVertexBuffer(myBufView.m_buffer.Get(), byteStride, 0);
 				
 		D3D11_INPUT_ELEMENT_DESC ieDesc{};
 		ieDesc.SemanticName = "POSITION";
@@ -89,11 +87,12 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 	{
 		const int accessor_idx = attributes.at("NORMAL");
 		const auto& accessor = tinyModel.accessors[accessor_idx];
+		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
 		const UINT inputSlot = this->FindVertexBuffer(myBufView.m_buffer.Get());
 		if (inputSlot == m_vertex.pBuffers.size())
-			this->AddVertexBuffer(myBufView, 12u);
+			this->AddVertexBuffer(myBufView.m_buffer.Get(), byteStride, 0);
 
 		D3D11_INPUT_ELEMENT_DESC ieDesc{};
 		ieDesc.SemanticName = "NORMAL";
@@ -119,6 +118,7 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 	{
 		const int accessor_idx = attributes.at("TEXCOORD_0");
 		const auto& accessor = tinyModel.accessors[accessor_idx];
+		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
 		UINT byteLength{};
@@ -143,7 +143,7 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 
 		const UINT inputSlot = this->FindVertexBuffer(myBufView.m_buffer.Get());
 		if (inputSlot == m_vertex.pBuffers.size())
-			this->AddVertexBuffer(myBufView, byteLength);
+			this->AddVertexBuffer(myBufView.m_buffer.Get(), byteStride, 0);
 
 		D3D11_INPUT_ELEMENT_DESC ieDesc{};
 		ieDesc.SemanticName = "TEXCOORD";
@@ -170,47 +170,36 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout));
 }
 
-bool sturdy_guacamole::GLTFPrimitive::SetPrimitiveTopology(const tinygltf::Primitive& primitive)
-{
-	bool res = true;
-	switch (primitive.mode)
-	{
-	case TINYGLTF_MODE_TRIANGLES:
-		m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		break;
-	case TINYGLTF_MODE_TRIANGLE_STRIP:
-		m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-		break;
-	case TINYGLTF_MODE_POINTS:
-		m_topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-		break;
-	case TINYGLTF_MODE_LINE:
-		m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-		break;
-	case TINYGLTF_MODE_LINE_STRIP:
-		m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-		break;
-	case TINYGLTF_MODE_TRIANGLE_FAN:
-		OutputDebugStringW(L"TINYGLTF_MODE_TRIANGLE_FAN is not supported");
-	case TINYGLTF_MODE_LINE_LOOP:
-		OutputDebugStringW(L"TINYGLTF_MODE_LINE_LOOP is not supported");
-	default:
-		res = false;
-	}
-
-	return res;
-}
-
-void sturdy_guacamole::GLTFPrimitive::AddVertexBuffer(const GLTFBufferView& myBufView, UINT byteLength)
-{
-	ID3D11Buffer* pBuffer = myBufView.m_buffer.Get();
-
-	m_vertex.pBuffers.push_back(pBuffer);
-	m_vertex.offsets.push_back(0); // byte offset is already applied in GLTFBufferView
-
-	UINT byteStride = (myBufView.m_byteStride > 0) ? myBufView.m_byteStride : byteLength;
-	m_vertex.strides.push_back(byteStride);
-}
+//bool sturdy_guacamole::GLTFPrimitive::SetPrimitiveTopology(const tinygltf::Primitive& primitive)
+//{
+//	bool res = true;
+//	switch (primitive.mode)
+//	{
+//	case TINYGLTF_MODE_TRIANGLES:
+//		m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+//		break;
+//	case TINYGLTF_MODE_TRIANGLE_STRIP:
+//		m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+//		break;
+//	case TINYGLTF_MODE_POINTS:
+//		m_topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+//		break;
+//	case TINYGLTF_MODE_LINE:
+//		m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+//		break;
+//	case TINYGLTF_MODE_LINE_STRIP:
+//		m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+//		break;
+//	case TINYGLTF_MODE_TRIANGLE_FAN:
+//		OutputDebugStringW(L"TINYGLTF_MODE_TRIANGLE_FAN is not supported");
+//	case TINYGLTF_MODE_LINE_LOOP:
+//		OutputDebugStringW(L"TINYGLTF_MODE_LINE_LOOP is not supported");
+//	default:
+//		res = false;
+//	}
+//
+//	return res;
+//}
 
 void sturdy_guacamole::GLTFPrimitive::AddVertexBuffer(ID3D11Buffer* pBuffer, UINT stride, UINT offset)
 {
