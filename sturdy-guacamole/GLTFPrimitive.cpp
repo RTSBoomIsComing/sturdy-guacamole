@@ -24,6 +24,8 @@ void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) 
 	pDeviceContext->IASetInputLayout(m_inputLayout.Get());
 	pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
 	pDeviceContext->IASetVertexBuffers(0, (UINT)m_vertex.pBuffers.size(), m_vertex.pBuffers.data(), m_vertex.strides.data(), m_vertex.offsets.data());
+	pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
+	pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
 	pDeviceContext->DrawIndexed(m_index.count, 0, 0);
 }
 
@@ -32,6 +34,8 @@ void sturdy_guacamole::GLTFPrimitive::DrawInstanced(ID3D11DeviceContext* pDevice
 	pDeviceContext->IASetInputLayout(m_inputLayout.Get());
 	pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
 	pDeviceContext->IASetVertexBuffers(0, (UINT)m_vertex.pBuffers.size(), m_vertex.pBuffers.data(), m_vertex.strides.data(), m_vertex.offsets.data());
+	pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
+	pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
 	pDeviceContext->DrawIndexedInstanced(m_index.count, instanceCount, 0, 0, 0);
 }
 

@@ -10,6 +10,9 @@ cbuffer CommonConstants : register(b1)
 	float3 ViewerPos;			// World space viewer position
 };
 
+Texture2D<float4> BaseColorTex : register(t0);
+SamplerState DefaultSampler : register(s0);
+
 struct VSOutput
 {
 	float4 position : SV_POSITION;
@@ -21,6 +24,6 @@ struct VSOutput
 
 float4 main(VSOutput vsOutput) : SV_Target0
 {
-	return float4(vsOutput.normal, 1.0f);
-	//return float4(0.75f, 0.75f, 0.75f, 1.0f);
+	return BaseColorTex.Sample(DefaultSampler, vsOutput.uv);
+
 }

@@ -30,7 +30,7 @@ sturdy_guacamole::Graphics::Graphics()
 
 	// Set the default rasterizer state
 	this->InitRasterizerStates();
-	g_pDeviceContext->RSSetState(m_rsstate.wireframe.Get());
+	g_pDeviceContext->RSSetState(m_rsstate.solid.Get());
 
 	// Set the default depth stencil state
 	this->InitDepthStencilStates();
