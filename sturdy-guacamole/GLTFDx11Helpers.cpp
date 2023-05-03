@@ -112,3 +112,87 @@ DXGI_FORMAT sturdy_guacamole::ConvertToDXGIFormat(int compType, int compCount, b
 
 	return DXGI_FORMAT_UNKNOWN;
 }
+
+D3D11_SAMPLER_DESC sturdy_guacamole::ConvertToDx11SamplerDesc(int magFilter, int minFilter, int wrapS, int wrapT)
+{
+	CD3D11_SAMPLER_DESC samplerDesc(D3D11_DEFAULT);
+
+
+	if (magFilter == TINYGLTF_TEXTURE_FILTER_NEAREST)
+	{
+		switch (minFilter)
+		{
+		case TINYGLTF_TEXTURE_FILTER_NEAREST:
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR:
+			samplerDesc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
+			samplerDesc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
+			samplerDesc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+			break;
+		}
+	}
+
+	if (magFilter == TINYGLTF_TEXTURE_FILTER_LINEAR)
+	{
+		switch (minFilter)
+		{
+		case TINYGLTF_TEXTURE_FILTER_NEAREST:
+			samplerDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR:
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
+			samplerDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+			samplerDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			break;
+		}
+	}
+
+	switch (wrapS)
+	{
+	case TINYGLTF_TEXTURE_WRAP_REPEAT:
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		break;
+	case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+		break;
+	case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+		break;
+	}
+
+	switch (wrapT)
+	{
+	case TINYGLTF_TEXTURE_WRAP_REPEAT:
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		break;
+	case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+		break;
+	case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+		break;
+	}
+
+	return samplerDesc;
+}

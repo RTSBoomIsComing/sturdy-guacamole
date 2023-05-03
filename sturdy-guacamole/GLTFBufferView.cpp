@@ -12,8 +12,6 @@ sturdy_guacamole::GLTFBufferView::GLTFBufferView(const tinygltf::Model& model, c
 	m_byteLength{ static_cast<UINT>(bufferView.byteLength) },
 	m_byteStride{ static_cast<UINT>(bufferView.byteStride) }
 {
-	// DirectX11 has no concept of a buffer view, 
-	// so we just create a buffer and use the offset and length to create a view
 	D3D11_BIND_FLAG bindFlag{};
 	switch (bufferView.target)
 	{

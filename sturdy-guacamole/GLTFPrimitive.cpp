@@ -15,6 +15,8 @@ sturdy_guacamole::GLTFPrimitive::GLTFPrimitive(const tinygltf::Model& model, con
 	m_topology = sturdy_guacamole::ConvertToDx11Topology(primitive.mode);
 	ProcessIndices(model, primitive, myModel);
 	ProcessAttributes(model, primitive, myModel);
+
+	m_pMaterial = &myModel.m_materials[primitive.material];
 }
 
 void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) const

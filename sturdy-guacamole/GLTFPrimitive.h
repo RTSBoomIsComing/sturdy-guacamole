@@ -15,7 +15,7 @@ namespace tinygltf
 namespace sturdy_guacamole
 {
 	class GLTFModel;
-	class GLTFBufferView;
+	class GLTFMaterial;
 
 	class GLTFPrimitive
 	{
@@ -27,6 +27,7 @@ namespace sturdy_guacamole
 
 
 	public:
+		const GLTFMaterial* m_pMaterial{};
 		
 		struct // used in ID3D11DeviceContext::IASetIndexBuffer();
 		{

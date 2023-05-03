@@ -53,6 +53,12 @@ namespace sturdy_guacamole
 			ComPtr<ID3D11DepthStencilView> main{};
 		} m_dsview; // depth stencil view
 
+		struct
+		{
+			ComPtr<ID3D11SamplerState> linear{};
+			ComPtr<ID3D11SamplerState> point{};
+		} m_sampler;
+
 	private:
 		void InitVertexShaders(std::filesystem::path baseDir);
 		void InitPixelShaders(std::filesystem::path baseDir);
@@ -61,5 +67,6 @@ namespace sturdy_guacamole
 		void InitDepthStencilStates();
 		void InitRenderTargetViews();
 		void InitDepthStencilViews();
+		void InitSamplerStates();
 	};
 }

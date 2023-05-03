@@ -2,6 +2,7 @@
 //#include "Scene.h"
 
 #include "GLTFBufferView.h"
+#include "GLTFMaterial.h"
 #include "GLTFMesh.h"
 #include "GLTFNode.h"
 #include "GLTFScene.h"
@@ -32,10 +33,12 @@ namespace sturdy_guacamole
 
 
 		std::vector<GLTFBufferView> m_bufferViews{};
+		std::vector<GLTFMaterial> m_materials{};
 		std::vector<GLTFMesh> m_meshes{};
 		std::vector<GLTFNode> m_nodes{};
 		std::vector<GLTFScene> m_scenes{};
 		std::vector<ComPtr<ID3D11ShaderResourceView>> m_images{};
+		std::vector<ComPtr<ID3D11SamplerState>> m_samplers{};
 
 	private:
 		bool LoadModel(tinygltf::Model& outModel, const std::filesystem::path& path);

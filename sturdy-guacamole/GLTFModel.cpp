@@ -30,6 +30,45 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 		m_bufferViews.push_back(GLTFBufferView{ tinyModel, tinyBufferView, *this });
 	}
 
+	// populate images
+	m_images.reserve(tinyModel.images.size());
+	for (const auto& tinyImage : tinyModel.images)
+	{
+		DXGI_FORMAT format = sturdy_guacamole::ConvertToDXGIFormat(tinyImage.pixel_type, tinyImage.component);
+
+		ComPtr<ID3D11Texture2D> tex2d{};
+		ComPtr<ID3D11ShaderResourceView> srv{};
+		CD3D11_TEXTURE2D_DESC desc{ format, (UINT)tinyImage.width, (UINT)tinyImage.height, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_IMMUTABLE };
+		D3D11_SUBRESOURCE_DATA initData{};
+		const void* pSysMem = const_cast<unsigned char*>(tinyImage.image.data());
+		initData.pSysMem = tinyImage.image.data();
+		initData.SysMemPitch = tinyImage.width * (tinyImage.bits / 8) * tinyImage.component;
+
+		ThrowIfFailed(g_pDevice->CreateTexture2D(&desc, &initData, &tex2d));
+		ThrowIfFailed(g_pDevice->CreateShaderResourceView(tex2d.Get(), nullptr, &srv));
+
+		m_images.push_back(srv);
+	}
+
+	// populate samplers
+	m_samplers.reserve(tinyModel.samplers.size());
+	for (const auto& tinySampler : tinyModel.samplers)
+	{
+		auto samplerDesc = sturdy_guacamole::ConvertToDx11SamplerDesc(tinySampler.magFilter, tinySampler.minFilter, tinySampler.wrapS, tinySampler.wrapT);
+
+		ComPtr<ID3D11SamplerState> sampler{};
+		ThrowIfFailed(g_pDevice->CreateSamplerState(&samplerDesc, &sampler));
+
+		m_samplers.push_back(sampler);
+	}
+
+	// populate materials
+	m_materials.reserve(tinyModel.materials.size());
+	for (const auto& tinyMaterial : tinyModel.materials)
+	{
+		m_materials.push_back(GLTFMaterial{ tinyModel, tinyMaterial, *this });
+	}
+
 	// populate meshes
 	m_meshes.reserve(tinyModel.meshes.size());
 	for (const auto& tinyMesh : tinyModel.meshes)
@@ -51,25 +90,7 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 		m_scenes.push_back(GLTFScene{ tinyScene, *this });
 	}
 
-	// populate images
-	m_images.reserve(tinyModel.images.size());
-	for (const auto& tinyImage : tinyModel.images)
-	{
-		DXGI_FORMAT format = sturdy_guacamole::ConvertToDXGIFormat(tinyImage.pixel_type, tinyImage.component);
 
-		ComPtr<ID3D11Texture2D> tex2d{};
-		ComPtr<ID3D11ShaderResourceView> srv{};
-		CD3D11_TEXTURE2D_DESC desc{ format, (UINT)tinyImage.width, (UINT)tinyImage.height, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_IMMUTABLE };
-		D3D11_SUBRESOURCE_DATA initData{};
-		const void* pSysMem = const_cast<unsigned char*>(tinyImage.image.data());
-		initData.pSysMem = tinyImage.image.data();
-		initData.SysMemPitch = tinyImage.width * (tinyImage.bits / 8) * tinyImage.component;
-		
-		ThrowIfFailed(g_pDevice->CreateTexture2D(&desc, &initData, &tex2d));
-		ThrowIfFailed(g_pDevice->CreateShaderResourceView(tex2d.Get(), nullptr, &srv));
-
-		m_images.push_back(srv);
-	}
 }
 
 bool sturdy_guacamole::GLTFModel::LoadModel(tinygltf::Model& outModel, const std::filesystem::path& path)

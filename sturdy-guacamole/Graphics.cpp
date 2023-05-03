@@ -117,3 +117,12 @@ void sturdy_guacamole::Graphics::InitDepthStencilViews()
 	CD3D11_DEPTH_STENCIL_VIEW_DESC dsviewDesc{ D3D11_DSV_DIMENSION_TEXTURE2D };
 	ThrowIfFailed(g_pDevice->CreateDepthStencilView(dsBuffer.Get(), &dsviewDesc, &m_dsview.main));
 }
+
+void sturdy_guacamole::Graphics::InitSamplerStates()
+{
+	CD3D11_SAMPLER_DESC samplerDesc{ D3D11_DEFAULT };
+	ThrowIfFailed(g_pDevice->CreateSamplerState(&samplerDesc, &m_sampler.linear));
+
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	ThrowIfFailed(g_pDevice->CreateSamplerState(&samplerDesc, &m_sampler.point));
+}
