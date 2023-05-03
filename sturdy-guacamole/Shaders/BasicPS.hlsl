@@ -1,3 +1,19 @@
+cbuffer MaterialConstants : register(b0)
+{
+	float4 BaseColorFactor;
+	float3 EmissiveFactor;
+	float MetallicFactor;
+
+	float RoughnessFactor;
+	bool HasBaseColorTex;
+	bool HasMetallicRoughnessTex;
+	bool HasNormalTex;
+
+	bool HasOcclusionTex;
+	bool HasEmissiveTex;
+	bool dummy[2];
+};
+
 cbuffer CommonConstants : register(b1)
 {
 	float4x4 ViewMatrix;		// World to view
@@ -11,7 +27,16 @@ cbuffer CommonConstants : register(b1)
 };
 
 Texture2D<float4> BaseColorTex : register(t0);
-SamplerState DefaultSampler : register(s0);
+Texture2D<float4> MetallicRoughnessTex : register(t1);
+Texture2D<float4> NormalTex : register(t2);
+Texture2D<float4> OcclusionTex : register(t3);
+Texture2D<float4> EmissiveTex : register(t4);
+
+SamplerState Sampler_BaseColorTex  : register(s0);
+SamplerState Sampler_MetallicRoughnessTex  : register(s1);
+SamplerState Sampler_NormalTex  : register(s2);
+SamplerState Sampler_OcclusionTex  : register(s3);
+SamplerState Sampler_EmissiveTex  : register(s4);
 
 struct VSOutput
 {
@@ -24,6 +49,6 @@ struct VSOutput
 
 float4 main(VSOutput vsOutput) : SV_Target0
 {
-	return BaseColorTex.Sample(DefaultSampler, vsOutput.uv);
+	return BaseColorTex.Sample(Sampler_BaseColorTex, vsOutput.uv);
 
 }

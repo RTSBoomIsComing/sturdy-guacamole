@@ -27,6 +27,7 @@ namespace sturdy_guacamole
 		// [0] = baseColorTexture, [1] = metallicRoughnessTexture, [2] = normalTexture, [3] = occlusionTexture, [4] = emissiveTexture
 		std::vector<ID3D11ShaderResourceView*> m_pSRViews{};
 		std::vector<ID3D11SamplerState*> m_pSamplers{};
+		ComPtr<ID3D11Buffer> m_cbuffer_material{};
 
 		float m_baseColorFactor[4]{ 1.0f, 1.0f, 1.0f, 1.0f };
 		float m_metallicFactor{ 1.0f };

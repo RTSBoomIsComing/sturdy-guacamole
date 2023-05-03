@@ -41,6 +41,9 @@ sturdy_guacamole::Graphics::Graphics()
 	this->InitDepthStencilViews();
 	g_pDeviceContext->OMSetRenderTargets(1, m_rtview.main.GetAddressOf(), m_dsview.main.Get());
 
+	// init common sampler states
+	InitSamplerStates();
+
 	// Set the default viewport
 	CD3D11_VIEWPORT viewport{ 0.0F, 0.0F, static_cast<float>(Win32App::Get().m_width), static_cast<float>(Win32App::Get().m_height)};
 	g_pDeviceContext->RSSetViewports(1, &viewport);
