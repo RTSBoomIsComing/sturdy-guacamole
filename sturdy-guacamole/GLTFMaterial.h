@@ -30,9 +30,11 @@ namespace sturdy_guacamole
 		ComPtr<ID3D11Buffer> m_cbuffer_material{};
 
 		float m_baseColorFactor[4]{ 1.0f, 1.0f, 1.0f, 1.0f };
+		float m_emissiveFactor[3]{};
 		float m_metallicFactor{ 1.0f };
 		float m_roughnessFactor{ 1.0f };
-		float m_emissiveFactor[3]{};
+		float m_normalScale{ 1.0f };
+		float m_occlusionStrength{ 1.0f };
 
 
 	private:

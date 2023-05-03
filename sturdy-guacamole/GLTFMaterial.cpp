@@ -21,13 +21,16 @@ sturdy_guacamole::GLTFMaterial::GLTFMaterial(const tinygltf::Model& tinyModel, c
 		m_baseColorFactor[i] = static_cast<float>(tinyMat.pbrMetallicRoughness.baseColorFactor[i]);
 	}
 
-	m_metallicFactor = static_cast<float>(tinyMat.pbrMetallicRoughness.metallicFactor);
-	m_roughnessFactor = static_cast<float>(tinyMat.pbrMetallicRoughness.roughnessFactor);
-
 	for (size_t i{}; i < 3; ++i)
 	{
 		m_emissiveFactor[i] = static_cast<float>(tinyMat.emissiveFactor[i]);
 	}
+
+	m_metallicFactor = static_cast<float>(tinyMat.pbrMetallicRoughness.metallicFactor);
+	m_roughnessFactor = static_cast<float>(tinyMat.pbrMetallicRoughness.roughnessFactor);
+	m_normalScale = static_cast<float>(tinyMat.normalTexture.scale);
+	m_occlusionStrength = static_cast<float>(tinyMat.occlusionTexture.strength);
+
 
 	// Create material constant buffer
 	struct
@@ -36,19 +39,21 @@ sturdy_guacamole::GLTFMaterial::GLTFMaterial(const tinygltf::Model& tinyModel, c
 		float EmissiveFactor[3];
 		float MetallicFactor;
 		float RoughnessFactor;
-
+		float NormalScale;
+		float OcclusionStrength;
 		BOOL HasBaseColorTex;
 		BOOL HasMetallicRoughnessTex;
 		BOOL HasNormalTex;
 		BOOL HasOcclusionTex;
 		BOOL HasEmissiveTex;
-		BOOL dummy[2];
 	} materialConstants{};
 
 	::memcpy(materialConstants.BaseColorFactor, m_baseColorFactor, sizeof(float) * 4);
 	::memcpy(materialConstants.EmissiveFactor, m_emissiveFactor, sizeof(float) * 3);
 	materialConstants.MetallicFactor = m_metallicFactor;
 	materialConstants.RoughnessFactor = m_roughnessFactor;
+	materialConstants.NormalScale = m_normalScale;
+	materialConstants.OcclusionStrength = m_occlusionStrength;
 
 	materialConstants.HasBaseColorTex = m_pSRViews[0] != nullptr;
 	materialConstants.HasMetallicRoughnessTex = m_pSRViews[1] != nullptr;
