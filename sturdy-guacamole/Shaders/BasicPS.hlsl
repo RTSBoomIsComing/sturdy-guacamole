@@ -112,6 +112,21 @@ float4 main(PSInput psInput) : SV_Target0
 
 	float intensity = dot(-g_light.dir, n);
 
-	return BaseColorTex.Sample(Sampler_BaseColorTex, psInput.uv) * intensity;
+	float4 color = (HasBaseColorTex) ? BaseColorTex.Sample(Sampler_BaseColorTex, psInput.uv) : float4(1.0, 1.0, 1.0, 1.0);
+	color *= BaseColorFactor * intensity;
+
+	if (HasOcclusionTex)
+	{
+		float ao = OcclusionTex.Sample(Sampler_OcclusionTex, psInput.uv).r;
+		color += color * OcclusionStrength * (ao - 1.0); //color = lerp(color, color * ao, OcclusionStrength);
+	}
+
+	if (HasEmissiveTex)
+	{
+		float3 emissive = EmissiveTex.Sample(Sampler_EmissiveTex, psInput.uv).rgb * EmissiveFactor;
+		color += float4(emissive, 0.0);
+	}
+
+	return color;
 
 }
