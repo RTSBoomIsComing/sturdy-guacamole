@@ -39,6 +39,9 @@ SamplerState Sampler_NormalTex  : register(s2);
 SamplerState Sampler_OcclusionTex  : register(s3);
 SamplerState Sampler_EmissiveTex  : register(s4);
 
+static const float PI = 3.141592;
+static const float Epsilon = 0.00001;
+
 struct Light
 {
 	float3 pos;
@@ -106,8 +109,6 @@ float3 GetNormal(PSInput psInput)
 float4 main(PSInput psInput) : SV_Target0
 {
 	float3 n = GetNormal(psInput);
-	//float n = (HasNormalTex) ? NormalTex.Sample(Sampler_NormalTex, psInput.uv).xyz : normal;
-
 
 	float intensity = dot(-g_light.dir, n);
 

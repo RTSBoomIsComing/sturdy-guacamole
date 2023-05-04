@@ -176,10 +176,13 @@ int main()
 			DirectX::XMConvertToRadians(90.0f), float(win32App.m_width) / float(win32App.m_height), 0.01f, 100.0f);
 
 		sturdy_guacamole::CommonConstants commonConstants{};
-		commonConstants.ViewerPos = Vector4{ viewerPos };
 		commonConstants.ViewMatrix = viewMatrix;
+		commonConstants.ViewInv = viewMatrix.Invert();
 		commonConstants.ProjMatrix = projMatrix;
+		commonConstants.ProjInv = projMatrix.Invert();
 		commonConstants.ViewProjMatrix = (viewMatrix * projMatrix);
+		commonConstants.ViewProjInv = commonConstants.ViewProjMatrix.Invert();
+		commonConstants.ViewerPos = Vector4{ viewerPos };
 
 		// Update common constant buffer
 		D3D11_MAPPED_SUBRESOURCE mappedResource{};
