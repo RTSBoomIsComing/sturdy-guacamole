@@ -5,13 +5,14 @@ cbuffer MaterialConstants : register(b0)
 	float MetallicFactor;
 
 	float RoughnessFactor;
+	float NormalScale;
+	float OcclusionStrength;
 	bool HasBaseColorTex;
+
 	bool HasMetallicRoughnessTex;
 	bool HasNormalTex;
-
 	bool HasOcclusionTex;
 	bool HasEmissiveTex;
-	bool dummy[2];
 };
 
 cbuffer CommonConstants : register(b1)
@@ -38,7 +39,16 @@ SamplerState Sampler_NormalTex  : register(s2);
 SamplerState Sampler_OcclusionTex  : register(s3);
 SamplerState Sampler_EmissiveTex  : register(s4);
 
-struct VSOutput
+struct Light
+{
+	float3 pos;
+	float3 dir;
+	float3 color;
+};
+
+const static Light g_light = { {0.0, 2.0, 0.0}, {0.0, -1.0, 0.0}, {1.0, 1.0, 1.0} };
+
+struct PSInput
 {
 	float4 position : SV_POSITION;
 	float3 worldPos : POSITION;
@@ -47,8 +57,60 @@ struct VSOutput
 	float2 uv : TEXCOORD0;
 };
 
-float4 main(VSOutput vsOutput) : SV_Target0
+float3 GetNormal(PSInput psInput)
 {
-	return BaseColorTex.Sample(Sampler_BaseColorTex, vsOutput.uv);
+	float3 n = psInput.normal;
+	
+	if (HasNormalTex)
+	{
+		float du1 = ddx(psInput.uv).x;
+		float dv1 = ddx(psInput.uv).y;
+		float du2 = ddy(psInput.uv).x;
+		float dv2 = ddy(psInput.uv).y;
+
+		float3 dp1 = ddx(psInput.worldPos);
+		float3 dp2 = ddy(psInput.worldPos);
+
+		// t := tangent, b := bitangent
+		// dp1 = du1 * t + dv1 * b
+		// dp2 = du2 * t + dv2 * b
+		// => system of equations, solve for t.
+		// b = (dp1 - du1 * t) / dv1
+		// dp2 = du2 * t + dv2 * (dp1 - du1 * t) / dv1
+		// dp2 = du2 * t + dv2 * dp1 / dv1 - dv2 * du1 * t / dv1
+		// dp2 - dv2 * dp1 / dv1 = (du2 - dv2 * du1 / dv1) * t
+		// dv1 * dp2 - dv2 * dp1 = (dv1 * du2 - dv2 * du1) * t
+		// t = (dv1 * dp2 - dv2 * dp1) / (dv1 * du2 - dv2 * du1)
+		float3 t = (dv1 * dp2 - dv2 * dp1) / (dv1 * du2 - dv2 * du1);
+
+		// gram schmidt orthogonalization
+		t = normalize(t - n * dot(n, t));
+
+		// b = (dp1 - du1 * t) / dv1
+		// you can solve for b, too, but there is more proper way.
+		float3 b = cross(n, t);
+
+		float3x3 tbn = float3x3(t, b, n); // row major matrix, so we can multiply by row vectors
+
+		n = NormalTex.Sample(Sampler_NormalTex, psInput.uv).xyz;
+		n = n * 2.0 - 1.0; // normalize to [-1, 1]
+
+		n = normalize(n * float3(NormalScale, NormalScale, 1.0));
+		n = mul(n, tbn); // tbn is row major, so we can multiply by row vectors
+	}
+
+	return n;
+}
+
+
+float4 main(PSInput psInput) : SV_Target0
+{
+	float3 n = GetNormal(psInput);
+	//float n = (HasNormalTex) ? NormalTex.Sample(Sampler_NormalTex, psInput.uv).xyz : normal;
+
+
+	float intensity = dot(-g_light.dir, n);
+
+	return BaseColorTex.Sample(Sampler_BaseColorTex, psInput.uv) * intensity;
 
 }

@@ -72,7 +72,11 @@ void sturdy_guacamole::GLTFMaterial::ProcessTexture(size_t textureIdx, const tin
 	{
 		const auto& tinyTex = tinyModel.textures[textureIdx];
 		m_pSRViews.push_back(myModel.m_images[tinyTex.source].Get());
-		m_pSamplers.push_back(myModel.m_samplers[tinyTex.sampler].Get());
+
+		if (static_cast<size_t>(tinyTex.sampler) < myModel.m_samplers.size())
+			m_pSamplers.push_back(myModel.m_samplers[tinyTex.sampler].Get());
+		else 
+			m_pSamplers.push_back(Graphics::Get().m_sampler.linear.Get());
 	}
 	else
 	{
