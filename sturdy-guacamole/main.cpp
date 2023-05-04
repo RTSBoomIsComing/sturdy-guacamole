@@ -196,6 +196,7 @@ int main()
 			commonConstantBuffer.Get(),
 		};
 		g_pDeviceContext->VSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
+		g_pDeviceContext->PSSetConstantBuffers(1, 1, commonConstantBuffer.GetAddressOf());
 
 		// Update geometry shader constant buffer
 		static bool bDrawNormals{};
