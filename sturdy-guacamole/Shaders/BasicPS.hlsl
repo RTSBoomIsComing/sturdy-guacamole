@@ -49,7 +49,7 @@ struct Light
 	float3 color;
 };
 
-const static Light g_light = { {0.0, 10.0, 0.0}, {0.0, -1.0, 0.0}, {1.0, 1.0, 1.0} };
+const static Light g_light = { {0.0, 1000.0, 0.0}, {0.0, -1.0, 0.0}, {1.0, 1.0, 1.0} };
 
 struct PSInput
 {
@@ -154,10 +154,12 @@ float4 main(PSInput psInput) : SV_Target0
 	float3 v = normalize(ViewerPos - psInput.worldPos);
 	float NdotV = clamp(dot(n, v), 0.001, 1.0);
 
+	const int num_lights = 2;
+	float3 light_pos[num_lights] = { g_light.pos, ViewerPos };
 	float4 color = float4(0.0, 0.0, 0.0, 1.0);
-	// for each light source
+	for (int i = 0; i < num_lights; ++i)
 	{
-		float3 l = normalize(g_light.pos - psInput.worldPos);
+		float3 l = normalize(light_pos[i] - psInput.worldPos);
 		float3 h = normalize(v + l);
 
 		float NdotL = clamp(dot(n, l), 0.001, 1.0);
@@ -173,7 +175,7 @@ float4 main(PSInput psInput) : SV_Target0
 
 		// The BRDF of the metallic-roughness material is a linear interpolation of a metallic BRDF and a dielectric BRDF.
 		float3 material = lerp(dielectric_brdf, metal_brdf, metallic);
-		color.rgb += material;
+		color.rgb += material * 2;
 
 		// We can simplify the mix and arrive at the final BRDF for the material
 		//float3 c_diff = lerp(baseColor.rgb, float3(0.0, 0.0, 0.0), metallic);
