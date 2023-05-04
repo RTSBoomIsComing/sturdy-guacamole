@@ -30,13 +30,13 @@ The external libraries we will be using are as follows:
 We are currently using an open-source library, tinygltf as our glTF loader.
 
 ## result so far
-![image](https://user-images.githubusercontent.com/61501369/235901019-14e02e93-9021-4dde-82a4-5d5a63794556.png)
+![image](https://user-images.githubusercontent.com/61501369/236117353-5e01af8f-8715-49b0-8b51-abadbefd0d95.png)
 
 ## Done
 - Load from glTF and draw 3d models.
 - Draw normal vectors of model. (On/Off)
 - Show loaded images.
-- Implement Material.
+- Apply texturing, normal mapping, occlusion mapping, emissive mapping.
 
 ## TODO
 1. implement PBR(physically based rendering) and direct lighting.
