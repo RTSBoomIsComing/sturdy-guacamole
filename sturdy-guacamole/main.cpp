@@ -151,7 +151,7 @@ int main()
 		static float accWheelValue{};
 		if (mouse_state.scrollWheelValue != 0)
 		{
-			accWheelValue += mouse_state.scrollWheelValue / 120.0f * 0.1;
+			accWheelValue += mouse_state.scrollWheelValue / 120.0f * 0.1f;
 			mouse->ResetScrollWheelValue();
 		}
 
@@ -186,6 +186,30 @@ int main()
 		const auto& kb_state = keyboard->GetState();
 		kb_tracker.Update(kb_state);
 
+		const Vector3 viewFocusForward = Vector3::Transform(Vector3::Forward, Matrix::CreateFromAxisAngle(Vector3::Up, viewFocusRot.y));
+		const Vector3 viewFocusRight = Vector3::Transform(Vector3::Right, Matrix::CreateFromAxisAngle(Vector3::Up, viewFocusRot.y));
+
+		if (kb_state.F)
+			viewFocusPos = Vector3{}; // to origin
+
+		if (kb_state.W)
+			viewFocusPos += viewFocusForward * deltaTime;
+
+		if (kb_state.S)
+			viewFocusPos -= viewFocusForward * deltaTime;
+
+		if (kb_state.A)
+			viewFocusPos -= viewFocusRight * deltaTime;
+
+		if (kb_state.D)
+			viewFocusPos += viewFocusRight * deltaTime;
+
+		if (kb_state.Space)
+			viewFocusPos += Vector3::Up * deltaTime;
+
+		if (kb_state.C)
+			viewFocusPos -= Vector3::Up * deltaTime;
+
 		const Matrix viewFocusDistMat_T = Matrix::CreateTranslation(-Vector3::Forward * viewFocusDistance);
 		const Matrix viewFocusMat_R = Matrix::CreateFromYawPitchRoll(viewFocusRot);
 		const Matrix viewFocusMat_T = Matrix::CreateTranslation(viewFocusPos);
@@ -197,26 +221,7 @@ int main()
 		const Vector3 viewerUp = Vector3::Transform(Vector3::Up, viewerTransformMat) - viewerPos;
 		const Vector3 viewerRight = Vector3::Transform(Vector3::Right, viewerTransformMat) - viewerPos;
 
-		if (kb_state.F)
-			viewFocusPos = Vector3{}; // to origin
 
-		if (kb_state.W)
-			viewFocusPos += viewerForward * Vector3{ 1.0, 0.0, 1.0 } *deltaTime;
-
-		if (kb_state.S)
-			viewFocusPos -= viewerForward * Vector3{ 1.0, 0.0, 1.0 } *deltaTime;
-
-		if (kb_state.A)
-			viewFocusPos -= viewerRight * Vector3{ 1.0, 0.0, 1.0 } *deltaTime;
-
-		if (kb_state.D)
-			viewFocusPos += viewerRight * Vector3{ 1.0, 0.0, 1.0 } *deltaTime;
-
-		if (kb_state.Space)
-			viewFocusPos += Vector3::Up * deltaTime;
-
-		if (kb_state.C)
-			viewFocusPos -= Vector3::Up * deltaTime;
 
 
 		// Clear the back buffer
