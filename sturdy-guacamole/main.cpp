@@ -23,6 +23,7 @@
 #include <format>
 #include <stdexcept>
 #include <functional>
+#include <string>
 
 namespace sturdy_guacamole
 {
@@ -68,11 +69,35 @@ int main()
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Triangle\\glTF\\Triangle.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Avocado\\glTF\\Avocado.gltf"
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"
-	
+
+	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
+	std::vector<std::string> asset_names{};
+	asset_names.push_back("DamagedHelmet");
+	asset_names.push_back("Avocado");
+	asset_names.push_back("ABeautifulGame");
+	asset_names.push_back("Cube");
+	//for (const auto& entry : std::filesystem::directory_iterator(gltfDir))
+	//{
+	//	if (entry.is_directory())
+	//	{
+	//		const std::wstring& unicode = entry.path().filename().wstring();
+	//		std::string utf8{};
+	//		int required_size = ::WideCharToMultiByte(CP_UTF8, WC_COMPOSITECHECK, unicode.c_str(), static_cast<int>(unicode.size()),
+	//			nullptr, 0, nullptr, nullptr);
+	//
+	//		utf8.resize(required_size);
+	//
+	//		::WideCharToMultiByte(CP_UTF8, WC_COMPOSITECHECK, unicode.c_str(), static_cast<int>(unicode.size()),
+	//			&utf8[0], static_cast<int>(utf8.size()), nullptr, nullptr);
+	//
+	//		asset_names.push_back(utf8);
+	//	}
+	//}
+
 	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf" };
 
 	// Load glTF model
-	sturdy_guacamole::GLTFModel gltfModel{ gltfPath };
+	auto gltfModel = std::make_shared<sturdy_guacamole::GLTFModel>(gltfPath);
 
 	// Create common constant buffer
 	CD3D11_BUFFER_DESC bufferDesc{ sizeof(sturdy_guacamole::CommonConstants), D3D11_BIND_CONSTANT_BUFFER,
@@ -210,7 +235,7 @@ int main()
 		g_pDeviceContext->GSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
 
 		// Start rendering
-		for (const auto& scene : gltfModel.m_scenes)
+		for (const auto& scene : gltfModel->m_scenes)
 		{
 			for (const auto& traversal : scene.m_traversals)
 			{
@@ -268,9 +293,29 @@ int main()
 		ImGui::End();
 
 		ImGui::Begin("Images");
-		for (const auto& image : gltfModel.m_images)
+		for (const auto& image : gltfModel->m_images)
 		{
 			ImGui::Image(image.Get(), ImVec2(256, 256));
+		}
+		ImGui::End();
+
+		ImGui::Begin("Assets");
+
+		static int item_current_idx{};
+		for (int i{}; i < asset_names.size(); i++)
+		{
+			const bool is_selected = (item_current_idx == i);
+			if (ImGui::Selectable(asset_names[i].c_str(), is_selected))
+			{
+				item_current_idx = i;
+				std::filesystem::path assetPath = gltfDir / asset_names[i] / L"glTF" / (asset_names[i] + ".gltf");
+				auto newModel = std::make_shared<sturdy_guacamole::GLTFModel>(assetPath);
+				gltfModel = newModel;
+			}
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
 		}
 		ImGui::End();
 
