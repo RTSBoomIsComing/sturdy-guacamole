@@ -94,10 +94,10 @@ float3 GetNormal(PSInput psInput)
 		float3x3 tbn = float3x3(t, b, n); // row major matrix, so we can multiply by row vectors
 
 		n = NormalTex.Sample(Sampler_NormalTex, psInput.uv).xyz;
-		n = n * 2.0 - 1.0; // normalize to [-1, 1]
+		n = n * 2.0 - float3(1.0, 1.0, 1.0); // normalize to [-1, 1]
 
-		n = normalize(n * float3(NormalScale, NormalScale, 1.0));
 		n = mul(n, tbn); // tbn is row major, so we can multiply by row vectors
+		n = normalize(n * float3(NormalScale, NormalScale, 1.0));
 	}
 
 	return n;
@@ -166,27 +166,27 @@ float4 main(PSInput psInput) : SV_Target0
 		float VdotH = clamp(dot(v, h), 0.0, 1.0);
 		//float LdotH = clamp(dot(l, h), 0.0, 1.0);
 
-		//float3 metal_brdf = Specular_brdf(alpha, NdotL, NdotV, NdotH) 
-		//	* (baseColor.rgb + (float3(1.0, 1.0, 1.0) - baseColor.rgb) * pow(1.0 - VdotH, 5));
+		float3 metal_brdf = Specular_brdf(alpha, NdotL, NdotV, NdotH) 
+			* (baseColor.rgb + (float3(1.0, 1.0, 1.0) - baseColor.rgb) * pow(1.0 - VdotH, 5));
 
-		//float3 dielectric_brdf = lerp(Diffuse_brdf(baseColor.rgb), Specular_brdf(alpha, NdotL, NdotV, NdotH),
-		//	0.04 + (1.0 - 0.04) * pow(1.0 - VdotH, 5));
+		float3 dielectric_brdf = lerp(Diffuse_brdf(baseColor.rgb), Specular_brdf(alpha, NdotL, NdotV, NdotH),
+			0.04 + (1.0 - 0.04) * pow(1.0 - VdotH, 5));
 
-		//// The BRDF of the metallic-roughness material is a linear interpolation of a metallic BRDF and a dielectric BRDF.
-		//float3 material = lerp(dielectric_brdf, metal_brdf, metallic);
-		//color.rgb += material;
+		// The BRDF of the metallic-roughness material is a linear interpolation of a metallic BRDF and a dielectric BRDF.
+		float3 material = lerp(dielectric_brdf, metal_brdf, metallic);
+		color.rgb += material;
 
 		// We can simplify the mix and arrive at the final BRDF for the material
-		float3 c_diff = lerp(baseColor.rgb, float3(0.0, 0.0, 0.0), metallic);
-		float3 f0 = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);
-		float a = roughness * roughness;
+		//float3 c_diff = lerp(baseColor.rgb, float3(0.0, 0.0, 0.0), metallic);
+		//float3 f0 = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);
+		//float a = roughness * roughness;
 
-		float3 F = f0 + (1 - f0) * pow(1 - VdotH, 0.5);
+		//float3 F = f0 + (1 - f0) * pow(1 - VdotH, 0.5);
 
-		float3 f_diffuse = (1 - F) / PI * c_diff;
-		float3 f_specular = F * Specular_brdf(alpha, NdotL, NdotV, NdotH);
-		float3 material = f_diffuse + f_specular;
-		color.rgb += material;
+		//float3 f_diffuse = (1 - F) / PI * c_diff;
+		//float3 f_specular = F * Specular_brdf(alpha, NdotL, NdotV, NdotH);
+		//float3 material = f_diffuse + f_specular;
+		//color.rgb += material;
 	}
 
 	if (HasOcclusionTex)
