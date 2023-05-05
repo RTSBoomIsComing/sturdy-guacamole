@@ -193,22 +193,22 @@ int main()
 			viewFocusPos = Vector3{}; // to origin
 
 		if (kb_state.W)
-			viewFocusPos += viewFocusForward * deltaTime;
+			viewFocusPos += viewFocusForward * deltaTime * viewFocusDistance;
 
 		if (kb_state.S)
-			viewFocusPos -= viewFocusForward * deltaTime;
+			viewFocusPos -= viewFocusForward * deltaTime * viewFocusDistance;
 
 		if (kb_state.A)
-			viewFocusPos -= viewFocusRight * deltaTime;
+			viewFocusPos -= viewFocusRight * deltaTime * viewFocusDistance;
 
 		if (kb_state.D)
-			viewFocusPos += viewFocusRight * deltaTime;
+			viewFocusPos += viewFocusRight * deltaTime * viewFocusDistance;
 
 		if (kb_state.Space)
-			viewFocusPos += Vector3::Up * deltaTime;
+			viewFocusPos += Vector3::Up * deltaTime * viewFocusDistance;
 
 		if (kb_state.C)
-			viewFocusPos -= Vector3::Up * deltaTime;
+			viewFocusPos -= Vector3::Up * deltaTime * viewFocusDistance;
 
 		const Matrix viewFocusDistMat_T = Matrix::CreateTranslation(-Vector3::Forward * viewFocusDistance);
 		const Matrix viewFocusMat_R = Matrix::CreateFromYawPitchRoll(viewFocusRot);
