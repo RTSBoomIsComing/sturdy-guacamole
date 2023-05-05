@@ -25,6 +25,9 @@
 #include <functional>
 #include <string>
 
+#undef min
+#undef max
+
 namespace sturdy_guacamole
 {
 
@@ -134,20 +137,40 @@ int main()
 			break;
 
 		// Run game code here
-		float deltaTime = ImGui::GetIO().DeltaTime;
+		const float deltaTime = ImGui::GetIO().DeltaTime;
 
+		// Control the camera (viewer) position and rotation
+		static Vector3 viewFocusPos{ 0.0f, 0.0f, 0.0f };
+		static Vector3 viewFocusRot{ 0.0f, 0.0f, 0.0f };
+		static float viewFocusDistance{ 2.0f };
 
 		// Process keyboard and mouse inputs
 		using ButtonState = DirectX::Mouse::ButtonStateTracker::ButtonState;
-		auto mouse_state = mouse->GetState();
+		const auto& mouse_state = mouse->GetState();
 
-		// Control the camera (viewer) position and rotation
-		static Vector3 viewerPos{ 0.0f, 0.0f, 1.0f };
-		static Vector3 viewerRot{ 0.0f, 0.0f, 0.0f };
+		static float accWheelValue{};
+		if (mouse_state.scrollWheelValue != 0)
+		{
+			accWheelValue += mouse_state.scrollWheelValue / 120.0f * 0.1;
+			mouse->ResetScrollWheelValue();
+		}
+
+		if (accWheelValue != 0.0f)
+		{
+			float att = 5 * deltaTime * accWheelValue;
+			if (abs(att) < deltaTime)
+				att = (att > 0.0f ? 1.0f : -1.0f) * deltaTime;
+			viewFocusDistance = std::max(viewFocusDistance - att, 0.1f);
+			accWheelValue -= att;
+			if (std::abs(accWheelValue) < att)
+				accWheelValue = 0.0f;
+		}
+
+
 		if (mouse_state.positionMode == DirectX::Mouse::MODE_RELATIVE)
 		{
-			viewerRot.x -= float(mouse_state.y) * 0.3f * deltaTime;
-			viewerRot.y -= float(mouse_state.x) * 0.1f * deltaTime;
+			viewFocusRot.x -= float(mouse_state.y) * 0.3f * deltaTime;
+			viewFocusRot.y -= float(mouse_state.x) * 0.1f * deltaTime;
 		}
 
 		mouse_tracker.Update(mouse_state);
@@ -160,30 +183,40 @@ int main()
 			mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
 		}
 
-		auto kb_state = keyboard->GetState();
+		const auto& kb_state = keyboard->GetState();
 		kb_tracker.Update(kb_state);
 
-		Vector3 viewerForward = Vector3::Transform(Vector3::Forward, Matrix::CreateFromYawPitchRoll(viewerRot));
-		Vector3 viewerUp = Vector3::Transform(Vector3::Up, Matrix::CreateFromYawPitchRoll(viewerRot));
-		Vector3 viewerRight = Vector3::Transform(Vector3::Right, Matrix::CreateFromYawPitchRoll(viewerRot));
+		const Matrix viewFocusDistMat_T = Matrix::CreateTranslation(-Vector3::Forward * viewFocusDistance);
+		const Matrix viewFocusMat_R = Matrix::CreateFromYawPitchRoll(viewFocusRot);
+		const Matrix viewFocusMat_T = Matrix::CreateTranslation(viewFocusPos);
+
+		const Matrix viewerTransformMat = viewFocusDistMat_T * viewFocusMat_R * viewFocusMat_T;
+
+		const Vector3 viewerPos = Vector3::Transform(Vector3{}, viewerTransformMat);
+		const Vector3 viewerForward = Vector3::Transform(Vector3::Forward, viewerTransformMat) - viewerPos;
+		const Vector3 viewerUp = Vector3::Transform(Vector3::Up, viewerTransformMat) - viewerPos;
+		const Vector3 viewerRight = Vector3::Transform(Vector3::Right, viewerTransformMat) - viewerPos;
+
+		if (kb_state.F)
+			viewFocusPos = Vector3{}; // to origin
 
 		if (kb_state.W)
-			viewerPos += viewerForward * deltaTime;
+			viewFocusPos += viewerForward * Vector3{ 1.0, 0.0, 1.0 } *deltaTime;
 
 		if (kb_state.S)
-			viewerPos -= viewerForward * deltaTime;
+			viewFocusPos -= viewerForward * Vector3{ 1.0, 0.0, 1.0 } *deltaTime;
 
 		if (kb_state.A)
-			viewerPos -= viewerRight * deltaTime;
+			viewFocusPos -= viewerRight * Vector3{ 1.0, 0.0, 1.0 } *deltaTime;
 
 		if (kb_state.D)
-			viewerPos += viewerRight * deltaTime;
+			viewFocusPos += viewerRight * Vector3{ 1.0, 0.0, 1.0 } *deltaTime;
 
 		if (kb_state.Space)
-			viewerPos += viewerUp * deltaTime;
+			viewFocusPos += Vector3::Up * deltaTime;
 
 		if (kb_state.C)
-			viewerPos -= viewerUp * deltaTime;
+			viewFocusPos -= Vector3::Up * deltaTime;
 
 
 		// Clear the back buffer
@@ -195,10 +228,11 @@ int main()
 
 
 		// create view, projection matrix
-		Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);
+		//Matrix viewMatrix = DirectX::XMMatrixLookToRH(viewerPos, viewerForward, viewerUp);
+		Matrix viewMatrix = DirectX::XMMatrixLookAtRH(viewerPos, viewFocusPos, viewerUp);
 
 		Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(
-			DirectX::XMConvertToRadians(90.0f), float(win32App.m_width) / float(win32App.m_height), 0.01f, 100.0f);
+			DirectX::XMConvertToRadians(90.0f), float(win32App.m_width) / float(win32App.m_height), 0.025f, 2000.0f);
 
 		sturdy_guacamole::CommonConstants commonConstants{};
 		commonConstants.ViewMatrix = viewMatrix;
@@ -284,7 +318,6 @@ int main()
 		ImGui::Text("Hello world!");
 		ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
 		ImGui::Text("delta time: %f", ImGui::GetIO().DeltaTime);
-		ImGui::DragFloat3("viewerRot", reinterpret_cast<float*>(&viewerRot));
 
 		ImGui::Text("Draw normals");
 		ImGui::Checkbox("On", &bDrawNormals);

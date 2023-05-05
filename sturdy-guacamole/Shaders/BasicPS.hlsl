@@ -153,8 +153,9 @@ float4 main(PSInput psInput) : SV_Target0
 	float3 v = normalize(ViewerPos - psInput.worldPos);
 	float NdotV = clamp(dot(n, v), 0.001, 1.0);
 
-	const int num_lights = 3;
-	float3 light_pos[num_lights] = { {0.0, 1000.0, 0.0}, { 1000.0, 0.0, 0.0 }, { -1000.0, 0.0, 0.0 } };
+	const int num_lights = 1;
+	//float3 light_pos[num_lights] = { {0.0, 1000.0, 0.0}, { 1000.0, 0.0, 0.0 }, { -1000.0, 0.0, 0.0 } };
+	float3 light_pos[num_lights] = { {10.0, 0.0, 0.0} };
 	float4 color = float4(0.0, 0.0, 0.0, 1.0);
 	for (int i = 0; i < num_lights; ++i)
 	{
@@ -166,7 +167,7 @@ float4 main(PSInput psInput) : SV_Target0
 		float VdotH = clamp(dot(v, h), 0.0, 1.0);
 		//float LdotH = clamp(dot(l, h), 0.0, 1.0);
 
-		float3 metal_brdf = Specular_brdf(alpha, NdotL, NdotV, NdotH) 
+		float3 metal_brdf = Specular_brdf(alpha, NdotL, NdotV, NdotH)
 			* (baseColor.rgb + (float3(1.0, 1.0, 1.0) - baseColor.rgb) * pow(1.0 - VdotH, 5));
 
 		float3 dielectric_brdf = lerp(Diffuse_brdf(baseColor.rgb), Specular_brdf(alpha, NdotL, NdotV, NdotH),
