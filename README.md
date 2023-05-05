@@ -30,7 +30,7 @@ The external libraries we will be using are as follows:
 We are currently using an open-source library, tinygltf as our glTF loader.
 
 ## result so far
-![image](https://user-images.githubusercontent.com/61501369/236203651-9c8a622e-bf42-4ece-848a-16e45983ae1e.png)
+![image](https://user-images.githubusercontent.com/61501369/236407097-4c06f8a4-3169-489b-863e-f354f33eb97f.png)
 
 ## Done
 - Load from glTF and draw 3d models.
