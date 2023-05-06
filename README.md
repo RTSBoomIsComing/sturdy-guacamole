@@ -30,7 +30,7 @@ The external libraries we will be using are as follows:
 We are currently using an open-source library, tinygltf as our glTF loader.
 
 ## result so far
-![image](https://user-images.githubusercontent.com/61501369/236407097-4c06f8a4-3169-489b-863e-f354f33eb97f.png)
+![image](https://user-images.githubusercontent.com/61501369/236629655-d8eb8c53-30e7-4503-802e-90a54d69de9f.png)
 
 ## Done
 - Load from glTF and draw 3d models.
@@ -38,10 +38,10 @@ We are currently using an open-source library, tinygltf as our glTF loader.
 - Show loaded images.
 - Apply texturing, normal mapping, occlusion mapping, emissive mapping.
 - Implement physically based rendering
+- Implement image based lighting
 
 ## TODO
-1. implement cubemap and IBL(image based lighting)
-1. implement shadowing(depth map, shadow map)
 1. implement animation, skinning, morphing
 1. implement object picking from screen using mouse(stencil buffer or ray casting)
+1. implement shadowing(depth map, shadow map)
 
