@@ -74,10 +74,12 @@ int main()
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"
 
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
-	std::vector<std::string> asset_names{ "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube","Triangle" };
+	std::vector<std::string> asset_names{ "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle", 
+		"WaterBottle", };
 
-
-
+	//// if you want to load all glTF models in a directory, use this code
+	//// but some models make the program crash
+	//std::vector<std::string> asset_names{};
 	//for (const auto& entry : std::filesystem::directory_iterator(gltfDir))
 	//{
 	//	if (entry.is_directory())
@@ -350,7 +352,7 @@ int main()
 				gltfModel = newModel;
 			}
 
-			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			// Set the initial focus
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
 		}

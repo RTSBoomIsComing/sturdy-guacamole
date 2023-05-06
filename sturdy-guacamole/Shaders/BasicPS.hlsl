@@ -169,11 +169,12 @@ float4 main(PSInput psInput) : SV_Target0
 	float roughness = (HasMetallicRoughnessTex) ? MetallicRoughnessTex.Sample(Sampler_MetallicRoughnessTex, psInput.uv).g : 1.0;
 	roughness *= RoughnessFactor;
 
-	const float alpha = roughness * roughness;
-
 	const float3 n = GetNormal(psInput);
 	const float3 v = normalize(ViewerPos - psInput.worldPos);
-	const float NdotV = dot(n, v);
+
+	PBRInput pbrInput;
+	pbrInput.alpha = roughness * roughness; // Perceptual roughness
+	pbrInput.NdotV = dot(n, v);
 
 	const int num_lights = 1;
 	//float3 light_pos[num_lights] = { {0.0, 1000.0, 0.0}, { 1000.0, 0.0, 0.0 }, { -1000.0, 0.0, 0.0 } };
@@ -186,12 +187,7 @@ float4 main(PSInput psInput) : SV_Target0
 		const float3 l = normalize(light_pos[i] - psInput.worldPos);
 		const float3 h = normalize(v + l);
 
-		const float NdotL = dot(n, l);
-
-		PBRInput pbrInput;
-		pbrInput.alpha = alpha;
 		pbrInput.NdotL = dot(n, l);
-		pbrInput.NdotV = NdotV;
 		pbrInput.NdotH = dot(n, h);
 		pbrInput.HdotL = dot(h, l);
 		pbrInput.HdotV = dot(h, v);
@@ -204,8 +200,8 @@ float4 main(PSInput psInput) : SV_Target0
 			float3 dielectric_brdf = lerp(Diffuse_brdf(baseColor.rgb), Specular_brdf(pbrInput), F_dieletric);
 
 			// The BRDF of the metallic-roughness material is a linear interpolation of a metallic BRDF and a dielectric BRDF.
-			float3 material_brdf = lerp(dielectric_brdf, metal_brdf, metallic) * NdotL;
-			final_color.rgb += material_brdf;
+			float3 material_brdf = lerp(dielectric_brdf, metal_brdf, metallic);
+			final_color.rgb += material_brdf * pbrInput.NdotL;
 		}
 
 		// We can simplify the mix and arrive at the final BRDF for the material
