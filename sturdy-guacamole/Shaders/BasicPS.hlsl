@@ -183,12 +183,33 @@ float4 main(PSInput psInput) : SV_Target0
 	pbrInput.alpha = roughness * roughness; // Perceptual roughness
 	pbrInput.NdotV = dot(n, v);
 
-	const int num_lights = 3;
-	float3 light_pos[num_lights] = { {0.0, 1000.0, 0.0}, { 1000.0, 0.0, 0.0 }, { -1000.0, 0.0, 0.0 } };
-	//const int num_lights = 1;
-	//float3 light_pos[num_lights] = { {10.0, 0.0, 0.0} };
 	float4 final_color = float4(0.0, 0.0, 0.0, 1.0);
 
+	// ambient lighting using IBL
+	{
+		// diffuse 
+		float3 f0 = lerp(0.04, baseColor, metallic);
+
+		// Assume the NdotV == HdotV
+		float3 F = Fresnel_schlick(f0, pbrInput.NdotV);
+		float3 kd = lerp(1.0 - F, 0.0, metallic);
+		float3 diffuse_irradiance = EnvDiffuseTex.Sample(Sampler_LinearClamp, n).rgb;
+		float3 ambient_diffuse_brdf = kd * baseColor * diffuse_irradiance;
+
+		// specular
+		float2 brdf_LUT = BrdfLutTex.Sample(Sampler_LinearClamp, float2(pbrInput.NdotV, 1.0 - roughness)).rg;
+		float3 specular_irradiance = EnvSpecularTex.SampleLevel(Sampler_LinearClamp, reflect(-v, n), 2 + roughness * 5.0f).rgb;
+		float3 ambient_specular_brdf = (f0 * brdf_LUT.x + brdf_LUT.y) * specular_irradiance;
+
+		float ibl_strength = 1.0;
+		final_color.rgb += (ambient_diffuse_brdf + ambient_specular_brdf) * ibl_strength;
+	}
+
+	// direct lighting
+	//const int num_lights = 1;
+	//float3 light_pos[num_lights] = { {10.0, 0.0, 0.0} };
+	const int num_lights = 3;
+	float3 light_pos[num_lights] = { {0.0, 1000.0, 0.0}, { 1000.0, 0.0, 0.0 }, { -1000.0, 0.0, 0.0 } };
 	[unroll]
 	for (int i = 0; i < num_lights; ++i)
 	{
@@ -214,11 +235,11 @@ float4 main(PSInput psInput) : SV_Target0
 
 		// We can simplify the mix and arrive at the final BRDF for the material
 		//{
-		//	float3 c_diff = lerp(baseColor.rgb, float3(0.0, 0.0, 0.0), metallic);
-		//	float3 f0 = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);
+		//	float3 c_diff = lerp(baseColor.rgb, 0.0, metallic);
+		//	float3 f0 = lerp(0.04, baseColor.rgb, metallic);
 		//	float a = roughness * roughness;
 
-		//	float3 F = f0 + (1 - f0) * pow(1 - abs(pbrInput.HdotV), 0.5);
+		//	float3 F = Fresnel_schlick(f0, pbrInput.HdotV);
 
 		//	float3 f_diffuse = (1 - F) / PI * c_diff;
 		//	float3 f_specular = F * Specular_brdf(pbrInput);
