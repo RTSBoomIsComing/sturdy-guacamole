@@ -11,6 +11,7 @@
 
 
 // Include DirectX Tool Kit
+#include <directxtk/DDSTextureLoader.h>
 #include <directxtk/SimpleMath.h>
 #include <directxtk/Keyboard.h>
 #include <directxtk/Mouse.h>
@@ -74,7 +75,7 @@ int main()
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"
 
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
-	std::vector<std::string> asset_names{ "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle", 
+	std::vector<std::string> asset_names{ "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
 		"WaterBottle", };
 
 	//// if you want to load all glTF models in a directory, use this code
@@ -103,13 +104,37 @@ int main()
 	// Load glTF model
 	auto gltfModel = std::make_shared<sturdy_guacamole::GLTFModel>(gltfPath);
 
+	// Load textures for IBL
+	const std::filesystem::path assetBasePath = std::filesystem::current_path().parent_path();
+	const std::filesystem::path cubeMapBasePath = assetBasePath / "Assets" / "Textures" / "CubeMaps";
+
+	const std::filesystem::path envSpecularTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_SpecularHDR.dds";
+	const std::filesystem::path envDiffuseTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_DiffuseHDR.dds";
+	const std::filesystem::path brdfLutTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_Brdf.dds";
+
+	ComPtr<ID3D11ShaderResourceView> brdfLutTex{};
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), brdfLutTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
+		0, 0, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &brdfLutTex));
+
+	ComPtr<ID3D11ShaderResourceView> envSpecularTex{};
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), envSpecularTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
+		0, D3D11_RESOURCE_MISC_TEXTURECUBE, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &envSpecularTex));
+
+	ComPtr<ID3D11ShaderResourceView> envDiffuseTex{};
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), envDiffuseTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
+		0, D3D11_RESOURCE_MISC_TEXTURECUBE, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &envDiffuseTex));
+
+
+	// Set IBL textures
+	ID3D11ShaderResourceView* ibl_srviews[] = { brdfLutTex.Get(), envSpecularTex.Get(), envDiffuseTex.Get() };
+	g_pDeviceContext->PSSetShaderResources(10, ARRAYSIZE(ibl_srviews), ibl_srviews);
+
 	// Create common constant buffer
 	CD3D11_BUFFER_DESC bufferDesc{ sizeof(sturdy_guacamole::CommonConstants), D3D11_BIND_CONSTANT_BUFFER,
 		D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE };
 
 	ComPtr<ID3D11Buffer> commonConstantBuffer;
 	ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &commonConstantBuffer));
-
 
 	// Create mesh constant buffer
 	bufferDesc.ByteWidth = sizeof(sturdy_guacamole::MeshConstants);

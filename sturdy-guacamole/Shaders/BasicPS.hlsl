@@ -33,11 +33,18 @@ Texture2D<float4> NormalTex : register(t2);
 Texture2D<float4> OcclusionTex : register(t3);
 Texture2D<float4> EmissiveTex : register(t4);
 
+Texture2D<float4> BrdfLutTex  : register(t10);
+TextureCube<float4> EnvSpecularTex : register(t11);
+TextureCube<float4> EnvDiffuseTex : register(t12);
+
 SamplerState Sampler_BaseColorTex  : register(s0);
 SamplerState Sampler_MetallicRoughnessTex  : register(s1);
 SamplerState Sampler_NormalTex  : register(s2);
 SamplerState Sampler_OcclusionTex  : register(s3);
 SamplerState Sampler_EmissiveTex  : register(s4);
+
+SamplerState Sampler_PointClamp : register(s10);
+SamplerState Sampler_LinearClamp : register(s11);
 
 static const float PI = 3.141592;
 static const float EPSILON = 0.00001;
@@ -176,9 +183,10 @@ float4 main(PSInput psInput) : SV_Target0
 	pbrInput.alpha = roughness * roughness; // Perceptual roughness
 	pbrInput.NdotV = dot(n, v);
 
-	const int num_lights = 1;
-	//float3 light_pos[num_lights] = { {0.0, 1000.0, 0.0}, { 1000.0, 0.0, 0.0 }, { -1000.0, 0.0, 0.0 } };
-	float3 light_pos[num_lights] = { {10.0, 0.0, 0.0} };
+	const int num_lights = 3;
+	float3 light_pos[num_lights] = { {0.0, 1000.0, 0.0}, { 1000.0, 0.0, 0.0 }, { -1000.0, 0.0, 0.0 } };
+	//const int num_lights = 1;
+	//float3 light_pos[num_lights] = { {10.0, 0.0, 0.0} };
 	float4 final_color = float4(0.0, 0.0, 0.0, 1.0);
 
 	[unroll]
@@ -214,8 +222,8 @@ float4 main(PSInput psInput) : SV_Target0
 
 		//	float3 f_diffuse = (1 - F) / PI * c_diff;
 		//	float3 f_specular = F * Specular_brdf(pbrInput);
-		//	float3 material = f_diffuse + f_specular;
-		//	color.rgb += material;
+		//	float3 material_brdf = f_diffuse + f_specular;
+		//	final_color.rgb += material_brdf * pbrInput.NdotL;
 		//}
 	}
 
