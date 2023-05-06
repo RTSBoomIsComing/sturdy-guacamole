@@ -74,11 +74,10 @@ int main()
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"
 
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
-	std::vector<std::string> asset_names{};
-	asset_names.push_back("DamagedHelmet");
-	asset_names.push_back("Avocado");
-	asset_names.push_back("ABeautifulGame");
-	asset_names.push_back("Cube");
+	std::vector<std::string> asset_names{ "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube","Triangle" };
+
+
+
 	//for (const auto& entry : std::filesystem::directory_iterator(gltfDir))
 	//{
 	//	if (entry.is_directory())

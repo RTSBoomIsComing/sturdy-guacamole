@@ -16,7 +16,8 @@ sturdy_guacamole::GLTFPrimitive::GLTFPrimitive(const tinygltf::Model& model, con
 	ProcessIndices(model, primitive, myModel);
 	ProcessAttributes(model, primitive, myModel);
 
-	m_pMaterial = &myModel.m_materials[primitive.material];
+	if (static_cast<size_t>(primitive.material) < myModel.m_materials.size())
+		m_pMaterial = &myModel.m_materials[primitive.material];
 }
 
 void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) const
@@ -24,9 +25,13 @@ void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) 
 	pDeviceContext->IASetInputLayout(m_inputLayout.Get());
 	pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
 	pDeviceContext->IASetVertexBuffers(0, (UINT)m_vertex.pBuffers.size(), m_vertex.pBuffers.data(), m_vertex.strides.data(), m_vertex.offsets.data());
-	pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
-	pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
-	pDeviceContext->PSSetConstantBuffers(0, 1, m_pMaterial->m_cbuffer_material.GetAddressOf());
+
+	if (m_pMaterial != nullptr)
+	{
+		pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
+		pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
+		pDeviceContext->PSSetConstantBuffers(0, 1, m_pMaterial->m_cbuffer_material.GetAddressOf());
+	}
 	pDeviceContext->DrawIndexed(m_index.count, 0, 0);
 }
 
@@ -71,7 +76,7 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		const UINT inputSlot = this->FindVertexBuffer(myBufView.m_buffer.Get());
 		if (inputSlot == m_vertex.pBuffers.size())
 			this->AddVertexBuffer(myBufView.m_buffer.Get(), byteStride, 0);
-				
+
 		D3D11_INPUT_ELEMENT_DESC ieDesc{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlot, (UINT)accessor.byteOffset };
 		inputElementDescs.push_back(ieDesc);
 	}
