@@ -178,13 +178,15 @@ float4 main(PSInput psInput) : SV_Target0
 	const int num_lights = 1;
 	//float3 light_pos[num_lights] = { {0.0, 1000.0, 0.0}, { 1000.0, 0.0, 0.0 }, { -1000.0, 0.0, 0.0 } };
 	float3 light_pos[num_lights] = { {10.0, 0.0, 0.0} };
-	float4 color = float4(0.0, 0.0, 0.0, 1.0);
+	float4 final_color = float4(0.0, 0.0, 0.0, 1.0);
 
 	[unroll]
 	for (int i = 0; i < num_lights; ++i)
 	{
 		const float3 l = normalize(light_pos[i] - psInput.worldPos);
 		const float3 h = normalize(v + l);
+
+		const float NdotL = dot(n, l);
 
 		PBRInput pbrInput;
 		pbrInput.alpha = alpha;
@@ -202,8 +204,8 @@ float4 main(PSInput psInput) : SV_Target0
 			float3 dielectric_brdf = lerp(Diffuse_brdf(baseColor.rgb), Specular_brdf(pbrInput), F_dieletric);
 
 			// The BRDF of the metallic-roughness material is a linear interpolation of a metallic BRDF and a dielectric BRDF.
-			float3 material = lerp(dielectric_brdf, metal_brdf, metallic);
-			color.rgb += material;
+			float3 material_brdf = lerp(dielectric_brdf, metal_brdf, metallic) * NdotL;
+			final_color.rgb += material_brdf;
 		}
 
 		// We can simplify the mix and arrive at the final BRDF for the material
@@ -224,15 +226,15 @@ float4 main(PSInput psInput) : SV_Target0
 	if (HasOcclusionTex)
 	{
 		float ao = OcclusionTex.Sample(Sampler_OcclusionTex, psInput.uv).r;
-		color += color * OcclusionStrength * (ao - 1.0); //color = lerp(color, color * ao, OcclusionStrength);
+		final_color.rgb = lerp(final_color.rgb, final_color.rgb * ao, OcclusionStrength);
 	}
 
 	if (HasEmissiveTex)
 	{
 		float3 emissive = EmissiveTex.Sample(Sampler_EmissiveTex, psInput.uv).rgb * EmissiveFactor;
-		color += float4(emissive, 0.0);
+		final_color.rgb += emissive;
 	}
 
-	return color;
+	return final_color;
 
 }
