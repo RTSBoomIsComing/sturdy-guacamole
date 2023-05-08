@@ -50,6 +50,8 @@ void sturdy_guacamole::GLTFPrimitive::DrawInstanced(ID3D11DeviceContext* pDevice
 	pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
 	pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
 	pDeviceContext->PSSetConstantBuffers(0, 1, m_pMaterial->m_cbuffer_material.GetAddressOf());
+	pDeviceContext->PSSetConstantBuffers(2, 1, m_cbuffer_attribute.GetAddressOf());
+
 	if (m_index.pBuffer != nullptr)
 	{
 		pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
@@ -72,15 +74,15 @@ void sturdy_guacamole::GLTFPrimitive::ProcessIndices(const tinygltf::Model& tiny
 		m_index.format = (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) ?
 			DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
-
 		m_index.offset = accessor.byteOffset;
-
 		m_index.count = (UINT)accessor.count;
 	}
 }
 
 void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& tinyModel, const tinygltf::Primitive& primitive, const GLTFModel& myModel)
 {
+	enum ATTRIBUTE { POSITION, NORMAL, TEXCOORD, ATTRIBUTE_COUNT };
+
 	// used in ID3D11Device::CreateInputLayout();
 	std::vector<D3D11_INPUT_ELEMENT_DESC> ieDescs{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 15, 0 },
@@ -88,7 +90,16 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,	  15, 0 },
 	};
 
-	enum ATTRIBUTE { POSITION, NORMAL, TEXCOORD, ATTRIBUTE_COUNT };
+	struct
+	{
+		BOOL HasNormal{};
+		BOOL HasTangent{};
+		BOOL HasTexcoord_0{};
+		BOOL HasColor_0{};
+		BOOL HasJoint_0{};
+		BOOL HasWeight_0{};
+		BOOL padding[2]{};
+	} attributeConstants;
 
 	const auto& attributes = primitive.attributes;
 
@@ -115,6 +126,8 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 
 	if (attributes.contains("NORMAL"))
 	{
+		attributeConstants.HasNormal = true;
+
 		const int accessor_idx = attributes.at("NORMAL");
 		const auto& accessor = tinyModel.accessors[accessor_idx];
 		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
@@ -135,6 +148,8 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 
 	if (attributes.contains("TEXCOORD_0"))
 	{
+		attributeConstants.HasTexcoord_0 = true;
+
 		const int accessor_idx = attributes.at("TEXCOORD_0");
 		const auto& accessor = tinyModel.accessors[accessor_idx];
 		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
@@ -161,6 +176,11 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 	const auto& vsBlob = Graphics::Get().m_vtxShader.basic_blob;
 	ThrowIfFailed(g_pDevice->CreateInputLayout(ieDescs.data(), (UINT)ieDescs.size(),
 		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout));
+
+	// create attribute constants buffer
+	CD3D11_BUFFER_DESC bufDesc{ sizeof(attributeConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_IMMUTABLE };
+	D3D11_SUBRESOURCE_DATA initData{ &attributeConstants };
+	ThrowIfFailed(g_pDevice->CreateBuffer(&bufDesc, &initData, &m_cbuffer_attribute));
 }
 
 void sturdy_guacamole::GLTFPrimitive::AddVertexBuffer(ID3D11Buffer* pBuffer, UINT stride, UINT offset)

@@ -48,8 +48,12 @@ namespace sturdy_guacamole
 			UINT count{};
 		} m_vertex;
 
+		// inform that the primitive has certain attributes
+		ComPtr<ID3D11Buffer> m_cbuffer_attribute{};
+
 		// used in ID3D11Device::IASetInputLayout();
 		ComPtr<ID3D11InputLayout> m_inputLayout{};
+
 
 		// used in ID3D11DeviceContext::IASetPrimitiveTopology();
 		D3D11_PRIMITIVE_TOPOLOGY m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

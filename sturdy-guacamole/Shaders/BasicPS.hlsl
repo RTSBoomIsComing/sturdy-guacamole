@@ -27,6 +27,18 @@ cbuffer CommonConstants : register(b1)
 	float3 ViewerPos;			// World space viewer position
 };
 
+cbuffer AttributeConstants : register(b2)
+{
+	bool HasNormal{};
+	bool HasTangent{};
+	bool HasTexcoord_0{};
+	bool HasColor_0{};
+
+	bool HasJoint_0{};
+	bool HasWeight_0{};
+
+}
+
 Texture2D<float4> BaseColorTex : register(t0);
 Texture2D<float4> MetallicRoughnessTex : register(t1);
 Texture2D<float4> NormalTex : register(t2);
@@ -68,6 +80,14 @@ struct PSInput
 float3 GetNormal(PSInput psInput)
 {
 	float3 n = psInput.normal;
+
+	if (!HasNormal)
+	{
+		// generate normal with ddx ddy
+		float3 dp1 = ddx(psInput.worldPos);
+		float3 dp2 = ddy(psInput.worldPos);
+		n = normalize(cross(dp2, dp1));
+	}
 
 	if (HasNormalTex)
 	{
