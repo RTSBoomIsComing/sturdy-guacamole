@@ -22,16 +22,16 @@ sturdy_guacamole::GLTFPrimitive::GLTFPrimitive(const tinygltf::Model& model, con
 
 void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) const
 {
+	pDeviceContext->IASetPrimitiveTopology(m_topology);
 	pDeviceContext->IASetInputLayout(m_inputLayout.Get());
-	pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
 	pDeviceContext->IASetVertexBuffers(0, (UINT)m_vertex.pBuffers.size(), m_vertex.pBuffers.data(), m_vertex.strides.data(), m_vertex.offsets.data());
-
 	if (m_pMaterial != nullptr)
 	{
 		pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
 		pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
 		pDeviceContext->PSSetConstantBuffers(0, 1, m_pMaterial->m_cbuffer_material.GetAddressOf());
 	}
+	pDeviceContext->PSSetConstantBuffers(2, 1, m_cbuffer_attribute.GetAddressOf());
 	if (m_index.pBuffer != nullptr)
 	{
 		pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
@@ -45,12 +45,16 @@ void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) 
 
 void sturdy_guacamole::GLTFPrimitive::DrawInstanced(ID3D11DeviceContext* pDeviceContext, UINT instanceCount)
 {
+	pDeviceContext->IASetPrimitiveTopology(m_topology);
 	pDeviceContext->IASetInputLayout(m_inputLayout.Get());
 	pDeviceContext->IASetVertexBuffers(0, (UINT)m_vertex.pBuffers.size(), m_vertex.pBuffers.data(), m_vertex.strides.data(), m_vertex.offsets.data());
-	pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
-	pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
-	pDeviceContext->PSSetConstantBuffers(0, 1, m_pMaterial->m_cbuffer_material.GetAddressOf());
-	pDeviceContext->PSSetConstantBuffers(2, 1, m_cbuffer_attribute.GetAddressOf());
+	if (m_pMaterial != nullptr)
+	{
+		pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
+		pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
+		pDeviceContext->PSSetConstantBuffers(0, 1, m_pMaterial->m_cbuffer_material.GetAddressOf());
+	}
+	pDeviceContext->PSSetConstantBuffers(2, 1, m_cbuffer_attribute.GetAddressOf());	pDeviceContext->PSSetConstantBuffers(2, 1, m_cbuffer_attribute.GetAddressOf());
 
 	if (m_index.pBuffer != nullptr)
 	{
