@@ -63,7 +63,13 @@ void sturdy_guacamole::GLTFPrimitive::ProcessIndices(const tinygltf::Model& tiny
 void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& tinyModel, const tinygltf::Primitive& primitive, const GLTFModel& myModel)
 {
 	// used in ID3D11Device::CreateInputLayout();
-	std::vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs{};
+	std::vector<D3D11_INPUT_ELEMENT_DESC> ieDescs{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 15, 0 },
+		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 15, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,	  15, 0 },
+	};
+
+	enum ATTRIBUTE { POSITION, NORMAL, TEXCOORD, ATTRIBUTE_COUNT };
 
 	const auto& attributes = primitive.attributes;
 
@@ -73,12 +79,17 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
-		const UINT inputSlot = this->FindVertexBuffer(myBufView.m_buffer.Get());
-		if (inputSlot == m_vertex.pBuffers.size())
-			this->AddVertexBuffer(myBufView.m_buffer.Get(), byteStride, 0);
+		UINT offset{};
+		UINT alignedOffset{ (UINT)accessor.byteOffset };
+		if (byteStride < (UINT)accessor.byteOffset)
+		{
+			offset = (UINT)accessor.byteOffset;
+			alignedOffset = 0;
+		}
 
-		D3D11_INPUT_ELEMENT_DESC ieDesc{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlot, (UINT)accessor.byteOffset };
-		inputElementDescs.push_back(ieDesc);
+		const UINT inputSlot = this->FindOrAddVertexBuffer(myBufView.m_buffer.Get(), byteStride, offset);
+		ieDescs[POSITION].InputSlot = inputSlot;
+		ieDescs[POSITION].AlignedByteOffset = alignedOffset;
 	}
 
 	if (attributes.contains("NORMAL"))
@@ -88,21 +99,17 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
-		const UINT inputSlot = this->FindVertexBuffer(myBufView.m_buffer.Get());
-		if (inputSlot == m_vertex.pBuffers.size())
-			this->AddVertexBuffer(myBufView.m_buffer.Get(), byteStride, 0);
+		UINT offset{};
+		UINT alignedOffset{ (UINT)accessor.byteOffset };
+		if (byteStride < (UINT)accessor.byteOffset)
+		{
+			offset = (UINT)accessor.byteOffset;
+			alignedOffset = 0;
+		}
 
-		D3D11_INPUT_ELEMENT_DESC ieDesc{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlot, (UINT)accessor.byteOffset };
-		inputElementDescs.push_back(ieDesc);
-	}
-	else
-	{
-		const UINT inputSlot = this->FindVertexBuffer(nullptr);
-		if (inputSlot == m_vertex.pBuffers.size())
-			this->AddVertexBuffer(nullptr, 0, 0);
-
-		D3D11_INPUT_ELEMENT_DESC ieDesc{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlot };
-		inputElementDescs.push_back(ieDesc);
+		const UINT inputSlot = this->FindOrAddVertexBuffer(myBufView.m_buffer.Get(), byteStride, offset);
+		ieDescs[NORMAL].InputSlot = inputSlot;
+		ieDescs[NORMAL].AlignedByteOffset = alignedOffset;
 	}
 
 	if (attributes.contains("TEXCOORD_0"))
@@ -112,29 +119,26 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
-		UINT byteLength{};
-		DXGI_FORMAT format = sturdy_guacamole::ConvertToDXGIFormat(accessor.componentType, 2);
+		const DXGI_FORMAT format = sturdy_guacamole::ConvertToDXGIFormat(accessor.componentType, 2);
 
-		const UINT inputSlot = this->FindVertexBuffer(myBufView.m_buffer.Get());
-		if (inputSlot == m_vertex.pBuffers.size())
-			this->AddVertexBuffer(myBufView.m_buffer.Get(), byteStride, 0);
+		UINT offset{};
+		UINT alignedOffset{ (UINT)accessor.byteOffset };
+		if (byteStride < (UINT)accessor.byteOffset)
+		{
+			offset = (UINT)accessor.byteOffset;
+			alignedOffset = 0;
+		}
 
-		D3D11_INPUT_ELEMENT_DESC ieDesc{ "TEXCOORD", 0, format, inputSlot, (UINT)accessor.byteOffset };
-		inputElementDescs.push_back(ieDesc);
+		const UINT inputSlot = this->FindOrAddVertexBuffer(myBufView.m_buffer.Get(), byteStride, offset);
+		ieDescs[TEXCOORD].Format = format;
+		ieDescs[TEXCOORD].InputSlot = inputSlot;
+		ieDescs[TEXCOORD].AlignedByteOffset = alignedOffset;
 	}
-	else
-	{
-		const UINT inputSlot = this->FindVertexBuffer(nullptr);
-		if (inputSlot == m_vertex.pBuffers.size())
-			this->AddVertexBuffer(nullptr, 0, 0);
 
-		D3D11_INPUT_ELEMENT_DESC ieDesc{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, inputSlot };
-		inputElementDescs.push_back(ieDesc);
-	}
 
 	// create input layout
 	const auto& vsBlob = Graphics::Get().m_vtxShader.basic_blob;
-	ThrowIfFailed(g_pDevice->CreateInputLayout(inputElementDescs.data(), (UINT)inputElementDescs.size(),
+	ThrowIfFailed(g_pDevice->CreateInputLayout(ieDescs.data(), (UINT)ieDescs.size(),
 		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout));
 }
 
@@ -145,14 +149,23 @@ void sturdy_guacamole::GLTFPrimitive::AddVertexBuffer(ID3D11Buffer* pBuffer, UIN
 	m_vertex.strides.push_back(stride);
 }
 
-UINT sturdy_guacamole::GLTFPrimitive::FindVertexBuffer(const ID3D11Buffer* pVertexBuffer) const
+UINT sturdy_guacamole::GLTFPrimitive::FindVertexBuffer(const ID3D11Buffer* pBuffer, UINT stride, UINT offset) const
 {
 	UINT inputSlot{};
 	for (; inputSlot < m_vertex.pBuffers.size(); ++inputSlot)
 	{
-		if (m_vertex.pBuffers[inputSlot] == pVertexBuffer)
+		if (m_vertex.pBuffers[inputSlot] == pBuffer && m_vertex.offsets[inputSlot] == offset && m_vertex.strides[inputSlot] == stride)
 			break;
 	}
+
+	return inputSlot;
+}
+
+UINT sturdy_guacamole::GLTFPrimitive::FindOrAddVertexBuffer(ID3D11Buffer* pBuffer, UINT stride, UINT offset)
+{
+	const UINT inputSlot = FindVertexBuffer(pBuffer, stride, offset);
+	if (inputSlot == m_vertex.pBuffers.size())
+		AddVertexBuffer(pBuffer, stride, offset);
 
 	return inputSlot;
 }

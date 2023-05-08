@@ -76,7 +76,7 @@ int main()
 
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
 	std::vector<std::string> asset_names{ "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
-		"WaterBottle", };
+		"WaterBottle", "Buggy", };
 
 	//// if you want to load all glTF models in a directory, use this code
 	//// but some models make the program crash
@@ -99,7 +99,7 @@ int main()
 	//	}
 	//}
 
-	std::filesystem::path gltfPath{ L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf" };
+	std::filesystem::path gltfPath{ gltfDir / asset_names[0] / L"glTF" / (asset_names[0] + ".gltf") };
 
 	// Load glTF model
 	auto gltfModel = std::make_shared<sturdy_guacamole::GLTFModel>(gltfPath);
@@ -354,6 +354,7 @@ int main()
 		ImGui::Checkbox("On", &bDrawNormals);
 		ImGui::SameLine();
 		ImGui::SliderFloat("Scale", &normalGSConstants.Scale, 0.0f, 0.01f);
+		ImGui::SliderFloat("Viewer Distance", &viewFocusDistance, 0.1f, 10.0f);
 		ImGui::End();
 
 		ImGui::Begin("Images");
