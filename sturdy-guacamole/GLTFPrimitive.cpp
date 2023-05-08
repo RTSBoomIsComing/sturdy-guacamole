@@ -75,8 +75,7 @@ void sturdy_guacamole::GLTFPrimitive::ProcessIndices(const tinygltf::Model& tiny
 		const int bufferViewIdx = accessor.bufferView;
 
 		m_index.pBuffer = myModel.m_bufferViews[bufferViewIdx].m_buffer.Get();
-		m_index.format = (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) ?
-			DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+		m_index.format = sturdy_guacamole::ConvertToDXGIFormat(accessor.componentType, 1);
 
 		m_index.offset = accessor.byteOffset;
 		m_index.count = (UINT)accessor.count;
