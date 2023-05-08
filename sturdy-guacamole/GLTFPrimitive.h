@@ -45,6 +45,7 @@ namespace sturdy_guacamole
 			std::vector<ID3D11Buffer*> pBuffers{};
 			std::vector<UINT> strides{};
 			std::vector<UINT> offsets{};
+			UINT count{};
 		} m_vertex;
 
 		// used in ID3D11Device::IASetInputLayout();

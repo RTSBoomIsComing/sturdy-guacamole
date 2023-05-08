@@ -32,33 +32,51 @@ void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) 
 		pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
 		pDeviceContext->PSSetConstantBuffers(0, 1, m_pMaterial->m_cbuffer_material.GetAddressOf());
 	}
-	pDeviceContext->DrawIndexed(m_index.count, 0, 0);
+	if (m_index.pBuffer != nullptr)
+	{
+		pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
+		pDeviceContext->DrawIndexed(m_index.count, 0, 0);
+	}
+	else
+	{
+		pDeviceContext->Draw(m_vertex.count, 0);
+	}
 }
 
 void sturdy_guacamole::GLTFPrimitive::DrawInstanced(ID3D11DeviceContext* pDeviceContext, UINT instanceCount)
 {
 	pDeviceContext->IASetInputLayout(m_inputLayout.Get());
-	pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
 	pDeviceContext->IASetVertexBuffers(0, (UINT)m_vertex.pBuffers.size(), m_vertex.pBuffers.data(), m_vertex.strides.data(), m_vertex.offsets.data());
 	pDeviceContext->PSSetSamplers(0, (UINT)m_pMaterial->m_pSamplers.size(), m_pMaterial->m_pSamplers.data());
 	pDeviceContext->PSSetShaderResources(0, (UINT)m_pMaterial->m_pSRViews.size(), m_pMaterial->m_pSRViews.data());
 	pDeviceContext->PSSetConstantBuffers(0, 1, m_pMaterial->m_cbuffer_material.GetAddressOf());
-	pDeviceContext->DrawIndexedInstanced(m_index.count, instanceCount, 0, 0, 0);
+	if (m_index.pBuffer != nullptr)
+	{
+		pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
+		pDeviceContext->DrawIndexedInstanced(m_index.count, instanceCount, 0, 0, 0);
+	}
+	else
+	{
+		pDeviceContext->DrawInstanced(m_vertex.count, instanceCount, 0, 0);
+	}
 }
 
 void sturdy_guacamole::GLTFPrimitive::ProcessIndices(const tinygltf::Model& tinyModel, const tinygltf::Primitive& primitive, const GLTFModel& myModel)
 {
-	const auto& accessor = tinyModel.accessors[primitive.indices];
-	const int bufferViewIdx = accessor.bufferView;
+	if (static_cast<size_t>(primitive.indices) < tinyModel.accessors.size())
+	{
+		const auto& accessor = tinyModel.accessors[primitive.indices];
+		const int bufferViewIdx = accessor.bufferView;
 
-	m_index.pBuffer = myModel.m_bufferViews[bufferViewIdx].m_buffer.Get();
-	m_index.format = (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) ?
-		DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+		m_index.pBuffer = myModel.m_bufferViews[bufferViewIdx].m_buffer.Get();
+		m_index.format = (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) ?
+			DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
 
-	m_index.offset = accessor.byteOffset;
+		m_index.offset = accessor.byteOffset;
 
-	m_index.count = (UINT)accessor.count;
+		m_index.count = (UINT)accessor.count;
+	}
 }
 
 void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& tinyModel, const tinygltf::Primitive& primitive, const GLTFModel& myModel)
@@ -79,6 +97,8 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		const auto& accessor = tinyModel.accessors[accessor_idx];
 		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
+
+		m_vertex.count = (UINT)accessor.count;
 
 		UINT offset{};
 		UINT alignedOffset{ (UINT)accessor.byteOffset };

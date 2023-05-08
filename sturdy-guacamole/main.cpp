@@ -68,18 +68,12 @@ int main()
 	// Initialize Graphics singleton instance
 	sturdy_guacamole::Graphics gfx{};
 
-	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\ABeautifulGame\\glTF\\ABeautifulGame.gltf"
-	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Cube\\glTF\\Cube.gltf"
-	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Triangle\\glTF\\Triangle.gltf"
-	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\Avocado\\glTF\\Avocado.gltf"
-	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"
-
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
-	std::vector<std::string> asset_names{ "Buggy", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
-		"WaterBottle",  };
+	std::vector<std::string> asset_names{ "Fox", "EnvironmentTest", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
+		"WaterBottle", "Buggy", };
 
-	//// if you want to load all glTF models in a directory, use this code
-	//// but some models make the program crash
+	// if you want to load all glTF models in a directory, use this code
+	// but some models make the program crash
 	//std::vector<std::string> asset_names{};
 	//for (const auto& entry : std::filesystem::directory_iterator(gltfDir))
 	//{
