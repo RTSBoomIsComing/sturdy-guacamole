@@ -75,8 +75,8 @@ int main()
 	// L"D:\\GitHub\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"
 
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
-	std::vector<std::string> asset_names{ "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
-		"WaterBottle", "Buggy", };
+	std::vector<std::string> asset_names{ "Buggy", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
+		"WaterBottle",  };
 
 	//// if you want to load all glTF models in a directory, use this code
 	//// but some models make the program crash

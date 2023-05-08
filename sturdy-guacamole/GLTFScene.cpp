@@ -20,7 +20,7 @@ void sturdy_guacamole::GLTFScene::DFS(const GLTFNode* node, const traversalStep*
 	traversalStep step{};
 	step.m_node = node;
 	step.m_parent = (parent) ? parent->m_node : nullptr;
-	step.m_globalTransform = (parent) ? parent->m_globalTransform * node->m_matrix : node->m_matrix;
+	step.m_globalTransform = (parent) ? node->m_matrix * parent->m_globalTransform : node->m_matrix;
 	traversal.push_back(step);
 
 	for (const auto& child : node->m_children)
