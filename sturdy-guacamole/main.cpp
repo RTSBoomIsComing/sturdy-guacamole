@@ -69,29 +69,29 @@ int main()
 	sturdy_guacamole::Graphics gfx{};
 
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
-	std::vector<std::string> asset_names{ "TextureCoordinateTest", "EnvironmentTest", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
-		"WaterBottle", "Buggy", "Fox", };
+	//std::vector<std::string> asset_names{ "TextureCoordinateTest", "EnvironmentTest", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
+	//	"WaterBottle", "Buggy", "Fox", };
 
 	// if you want to load all glTF models in a directory, use this code
 	// but some models make the program crash
-	//std::vector<std::string> asset_names{};
-	//for (const auto& entry : std::filesystem::directory_iterator(gltfDir))
-	//{
-	//	if (entry.is_directory())
-	//	{
-	//		const std::wstring& unicode = entry.path().filename().wstring();
-	//		std::string utf8{};
-	//		int required_size = ::WideCharToMultiByte(CP_UTF8, WC_COMPOSITECHECK, unicode.c_str(), static_cast<int>(unicode.size()),
-	//			nullptr, 0, nullptr, nullptr);
-	//
-	//		utf8.resize(required_size);
-	//
-	//		::WideCharToMultiByte(CP_UTF8, WC_COMPOSITECHECK, unicode.c_str(), static_cast<int>(unicode.size()),
-	//			&utf8[0], static_cast<int>(utf8.size()), nullptr, nullptr);
-	//
-	//		asset_names.push_back(utf8);
-	//	}
-	//}
+	std::vector<std::string> asset_names{};
+	for (const auto& entry : std::filesystem::directory_iterator(gltfDir))
+	{
+		if (entry.is_directory())
+		{
+			const std::wstring& unicode = entry.path().filename().wstring();
+			std::string utf8{};
+			int required_size = ::WideCharToMultiByte(CP_UTF8, WC_COMPOSITECHECK, unicode.c_str(), static_cast<int>(unicode.size()),
+				nullptr, 0, nullptr, nullptr);
+	
+			utf8.resize(required_size);
+	
+			::WideCharToMultiByte(CP_UTF8, WC_COMPOSITECHECK, unicode.c_str(), static_cast<int>(unicode.size()),
+				&utf8[0], static_cast<int>(utf8.size()), nullptr, nullptr);
+	
+			asset_names.push_back(utf8);
+		}
+	}
 
 	std::filesystem::path gltfPath{ gltfDir / asset_names[0] / L"glTF" / (asset_names[0] + ".gltf") };
 
@@ -159,6 +159,11 @@ int main()
 		// Run game code here
 		const float deltaTime = ImGui::GetIO().DeltaTime;
 
+		// global transform
+		static Quaternion globalRot{};
+		static Vector3 globalPos{};
+		static float globalScale{ 1.0f };
+
 		// Control the camera (viewer) position and rotation
 		static Vector3 viewFocusPos{ 0.0f, 0.0f, 0.0f };
 		static Vector3 viewFocusRot{ 0.0f, 0.0f, 0.0f };
@@ -180,7 +185,7 @@ int main()
 			float att = 5 * deltaTime * accWheelValue;
 			if (abs(att) < deltaTime)
 				att = (att > 0.0f ? 1.0f : -1.0f) * deltaTime;
-			viewFocusDistance = std::max(viewFocusDistance - att, 0.1f);
+			viewFocusDistance = std::max(viewFocusDistance - att, 0.001f);
 			accWheelValue -= att;
 			if (std::abs(accWheelValue) < att)
 				accWheelValue = 0.0f;
@@ -293,6 +298,10 @@ int main()
 		pConstantBuffers[0] = normalGSConstantBuffer.Get();
 		g_pDeviceContext->GSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
 
+		// Create global transform for mesh constants
+		Matrix globalTransform = Matrix::CreateScale(globalScale)
+			* Matrix::CreateFromQuaternion(globalRot) * Matrix::CreateTranslation(globalPos);
+
 		// Start rendering
 		for (const auto& scene : gltfModel->m_scenes)
 		{
@@ -301,10 +310,9 @@ int main()
 				for (const auto& step : traversal)
 				{
 					// Create mesh constants
-					sturdy_guacamole::MeshConstants meshConstants = {
-							step.m_globalTransform,
-							step.m_globalTransform.Invert().Transpose()
-					};
+					sturdy_guacamole::MeshConstants meshConstants{};
+					meshConstants.WorldMatrix = step.m_globalTransform * globalTransform;
+					meshConstants.WorldIT = meshConstants.WorldMatrix.Invert().Transpose();					
 
 					// Update mesh constant buffer
 					D3D11_MAPPED_SUBRESOURCE mappedResource{};
@@ -348,7 +356,8 @@ int main()
 		ImGui::Checkbox("On", &bDrawNormals);
 		ImGui::SameLine();
 		ImGui::SliderFloat("Scale", &normalGSConstants.Scale, 0.0f, 0.01f);
-		ImGui::SliderFloat("Viewer Distance", &viewFocusDistance, 0.1f, 10.0f);
+		ImGui::DragFloat("Viewer Distance", &viewFocusDistance, 0.01f,0.001f, 20.0f);
+		ImGui::DragFloat("Global Scale", &globalScale, 0.002f, 0.01f, 2.0f);
 		ImGui::End();
 
 		ImGui::Begin("Images");
@@ -359,7 +368,6 @@ int main()
 		ImGui::End();
 
 		ImGui::Begin("Assets");
-
 		static int item_current_idx{};
 		for (int i{}; i < asset_names.size(); i++)
 		{
