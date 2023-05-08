@@ -22,7 +22,7 @@ sturdy_guacamole::GLTFPrimitive::GLTFPrimitive(const tinygltf::Model& model, con
 
 void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) const
 {
-	pDeviceContext->IASetPrimitiveTopology(m_topology);
+	//pDeviceContext->IASetPrimitiveTopology(m_topology);
 	pDeviceContext->IASetInputLayout(m_inputLayout.Get());
 	pDeviceContext->IASetVertexBuffers(0, (UINT)m_vertex.pBuffers.size(), m_vertex.pBuffers.data(), m_vertex.strides.data(), m_vertex.offsets.data());
 	if (m_pMaterial != nullptr)
@@ -45,7 +45,7 @@ void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) 
 
 void sturdy_guacamole::GLTFPrimitive::DrawInstanced(ID3D11DeviceContext* pDeviceContext, UINT instanceCount)
 {
-	pDeviceContext->IASetPrimitiveTopology(m_topology);
+	//pDeviceContext->IASetPrimitiveTopology(m_topology);
 	pDeviceContext->IASetInputLayout(m_inputLayout.Get());
 	pDeviceContext->IASetVertexBuffers(0, (UINT)m_vertex.pBuffers.size(), m_vertex.pBuffers.data(), m_vertex.strides.data(), m_vertex.offsets.data());
 	if (m_pMaterial != nullptr)
