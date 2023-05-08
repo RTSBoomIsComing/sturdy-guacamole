@@ -33,7 +33,7 @@ namespace sturdy_guacamole
 		{
 			ID3D11Buffer* pBuffer{};
 			DXGI_FORMAT format = DXGI_FORMAT_R16_UINT; // or DXGI_FORMAT_R32_UINT
-			UINT offset{};	// would be always 0
+			UINT offset{};
 
 			// used in ID3D11DeviceContext::DrawIndexed();
 			UINT count{};	
