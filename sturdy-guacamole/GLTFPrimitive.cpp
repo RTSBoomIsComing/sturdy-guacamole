@@ -77,103 +77,87 @@ void sturdy_guacamole::GLTFPrimitive::ProcessIndices(const tinygltf::Model& tiny
 		m_index.pBuffer = myModel.m_bufferViews[bufferViewIdx].m_buffer.Get();
 		m_index.format = sturdy_guacamole::ConvertToDXGIFormat(accessor.componentType, 1);
 
-		m_index.offset = accessor.byteOffset;
+		m_index.offset = (UINT)accessor.byteOffset;
 		m_index.count = (UINT)accessor.count;
 	}
 }
 
 void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& tinyModel, const tinygltf::Primitive& primitive, const GLTFModel& myModel)
 {
-	enum ATTRIBUTE { POSITION, NORMAL, TEXCOORD, ATTRIBUTE_COUNT };
-
+	enum ATTRIBUTE { POSITION, NORMAL, TANGENT, TEXCOORD_0, ATTRIBUTE_COUNT };
+	constexpr UINT MAX_INPUT_SLOT{ 15 };
 	// used in ID3D11Device::CreateInputLayout();
 	std::vector<D3D11_INPUT_ELEMENT_DESC> ieDescs{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 15, 0 },
-		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 15, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,	  15, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, MAX_INPUT_SLOT, 0 },
+		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, MAX_INPUT_SLOT, 0 },
+		{ "TANGENT",  0, DXGI_FORMAT_R32G32B32_FLOAT, MAX_INPUT_SLOT, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,	  MAX_INPUT_SLOT, 0 },
 	};
-
-	struct
-	{
-		BOOL HasNormal{};
-		BOOL HasTangent{};
-		BOOL HasTexcoord_0{};
-		BOOL HasColor_0{};
-		BOOL HasJoint_0{};
-		BOOL HasWeight_0{};
-		BOOL padding[2]{};
-	} attributeConstants;
 
 	const auto& attributes = primitive.attributes;
 
+	struct
 	{
-		const int accessor_idx = attributes.at("POSITION");
+		BOOL HAS_NORMAL		{};
+		BOOL HAS_TANGENT	{};
+		BOOL HAS_TEXCOORD_0	{};
+		BOOL HAS_COLOR_0	{};	// not used now
+		BOOL HAS_JOINT_0	{};	// not used now
+		BOOL HAS_WEIGHT_0	{};	// not used now
+		BOOL padding[2]		{};
+	} attrConstants{};
+
+
+	// Get vertex count
+	m_vertex.count = (UINT)tinyModel.accessors.at(attributes.at("POSITION")).count;
+
+	for (size_t i{}; i < TEXCOORD_0; ++i)	// Process POSITION, NORMAL, TANGENT
+	{
+		if (!attributes.contains(ieDescs[i].SemanticName))
+			continue;
+
+		const int accessor_idx = attributes.at(ieDescs[i].SemanticName);
 		const auto& accessor = tinyModel.accessors[accessor_idx];
 		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
-		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
+		assert(byteStride > 0);
 
-		m_vertex.count = (UINT)accessor.count;
-
-		UINT offset{};
-		UINT alignedOffset{ (UINT)accessor.byteOffset };
-		if (byteStride < (UINT)accessor.byteOffset)
-		{
-			offset = (UINT)accessor.byteOffset;
-			alignedOffset = 0;
-		}
-
-		const UINT inputSlot = this->FindOrAddVertexBuffer(myBufView.m_buffer.Get(), byteStride, offset);
-		ieDescs[POSITION].InputSlot = inputSlot;
-		ieDescs[POSITION].AlignedByteOffset = alignedOffset;
-	}
-
-	if (attributes.contains("NORMAL"))
-	{
-		attributeConstants.HasNormal = true;
-
-		const int accessor_idx = attributes.at("NORMAL");
-		const auto& accessor = tinyModel.accessors[accessor_idx];
-		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
 		UINT offset{};
 		UINT alignedOffset{ (UINT)accessor.byteOffset };
-		if (byteStride < (UINT)accessor.byteOffset)
-		{
-			offset = (UINT)accessor.byteOffset;
-			alignedOffset = 0;
-		}
+		if (static_cast<size_t>(byteStride) < accessor.byteOffset)
+			std::swap(offset, alignedOffset);
 
 		const UINT inputSlot = this->FindOrAddVertexBuffer(myBufView.m_buffer.Get(), byteStride, offset);
-		ieDescs[NORMAL].InputSlot = inputSlot;
-		ieDescs[NORMAL].AlignedByteOffset = alignedOffset;
+		ieDescs[i].InputSlot = inputSlot;
+		ieDescs[i].AlignedByteOffset = alignedOffset;
 	}
 
 	if (attributes.contains("TEXCOORD_0"))
 	{
-		attributeConstants.HasTexcoord_0 = true;
-
 		const int accessor_idx = attributes.at("TEXCOORD_0");
 		const auto& accessor = tinyModel.accessors[accessor_idx];
 		const int byteStride = accessor.ByteStride(tinyModel.bufferViews[accessor.bufferView]);
+		assert(byteStride > 0);
+
 		const auto& myBufView = myModel.m_bufferViews[accessor.bufferView];
 
 		const DXGI_FORMAT format = sturdy_guacamole::ConvertToDXGIFormat(accessor.componentType, 2);
 
 		UINT offset{};
 		UINT alignedOffset{ (UINT)accessor.byteOffset };
-		if (byteStride < (UINT)accessor.byteOffset)
-		{
-			offset = (UINT)accessor.byteOffset;
-			alignedOffset = 0;
-		}
+		if (static_cast<size_t>(byteStride) < accessor.byteOffset)
+			std::swap(offset, alignedOffset);
 
 		const UINT inputSlot = this->FindOrAddVertexBuffer(myBufView.m_buffer.Get(), byteStride, offset);
-		ieDescs[TEXCOORD].Format = format;
-		ieDescs[TEXCOORD].InputSlot = inputSlot;
-		ieDescs[TEXCOORD].AlignedByteOffset = alignedOffset;
+		ieDescs[TEXCOORD_0].Format = format;
+		ieDescs[TEXCOORD_0].InputSlot = inputSlot;
+		ieDescs[TEXCOORD_0].AlignedByteOffset = alignedOffset;
 	}
 
+	attrConstants.HAS_NORMAL = ieDescs[NORMAL].InputSlot != MAX_INPUT_SLOT;
+	attrConstants.HAS_TANGENT = ieDescs[TANGENT].InputSlot != MAX_INPUT_SLOT;
+	attrConstants.HAS_TEXCOORD_0 = ieDescs[TEXCOORD_0].InputSlot != MAX_INPUT_SLOT;
 
 	// create input layout
 	const auto& vsBlob = Graphics::Get().m_vtxShader.basic_blob;
@@ -181,8 +165,8 @@ void sturdy_guacamole::GLTFPrimitive::ProcessAttributes(const tinygltf::Model& t
 		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout));
 
 	// create attribute constants buffer
-	CD3D11_BUFFER_DESC bufDesc{ sizeof(attributeConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_IMMUTABLE };
-	D3D11_SUBRESOURCE_DATA initData{ &attributeConstants };
+	CD3D11_BUFFER_DESC bufDesc{ sizeof(attrConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_IMMUTABLE };
+	D3D11_SUBRESOURCE_DATA initData{ &attrConstants };
 	ThrowIfFailed(g_pDevice->CreateBuffer(&bufDesc, &initData, &m_cbuffer_attribute));
 }
 

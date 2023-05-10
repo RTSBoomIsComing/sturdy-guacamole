@@ -69,29 +69,33 @@ int main()
 	sturdy_guacamole::Graphics gfx{};
 
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
-	//std::vector<std::string> asset_names{ "TextureCoordinateTest", "EnvironmentTest", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
-	//	"WaterBottle", "Buggy", "Fox", };
+	std::vector<std::string> asset_names{ "TextureCoordinateTest", "EnvironmentTest", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
+		"WaterBottle", "Buggy", "Fox", };
 
 	// if you want to load all glTF models in a directory, use this code
-	// but some models make the program crash
-	std::vector<std::string> asset_names{};
-	for (const auto& entry : std::filesystem::directory_iterator(gltfDir))
-	{
-		if (entry.is_directory())
-		{
-			const std::wstring& unicode = entry.path().filename().wstring();
-			std::string utf8{};
-			int required_size = ::WideCharToMultiByte(CP_UTF8, WC_COMPOSITECHECK, unicode.c_str(), static_cast<int>(unicode.size()),
-				nullptr, 0, nullptr, nullptr);
-	
-			utf8.resize(required_size);
-	
-			::WideCharToMultiByte(CP_UTF8, WC_COMPOSITECHECK, unicode.c_str(), static_cast<int>(unicode.size()),
-				&utf8[0], static_cast<int>(utf8.size()), nullptr, nullptr);
-	
-			asset_names.push_back(utf8);
-		}
-	}
+
+	// Enable buffering to prevent VS from chopping up UTF-8 byte sequences
+	//SetConsoleOutputCP(CP_UTF8);
+	//setvbuf(stdout, nullptr, _IOFBF, 1000);
+
+	//std::vector<std::string> asset_names{};
+	//for (const auto& entry : std::filesystem::directory_iterator(gltfDir))
+	//{
+	//	if (entry.is_directory())
+	//	{
+	//		const std::wstring& unicode = entry.path().filename().wstring();
+	//		std::string utf8{};
+	//		int required_size = ::WideCharToMultiByte(CP_UTF8, 0, unicode.c_str(), static_cast<int>(unicode.size()),
+	//			nullptr, 0, nullptr, nullptr);
+	//
+	//		utf8.resize(required_size);
+	//
+	//		::WideCharToMultiByte(CP_UTF8, 0, unicode.c_str(), static_cast<int>(unicode.size()),
+	//			&utf8[0], static_cast<int>(utf8.size()), nullptr, nullptr);
+	//
+	//		std::cout << utf8 << std::endl;
+	//	}
+	//}
 
 	std::filesystem::path gltfPath{ gltfDir / asset_names[0] / L"glTF" / (asset_names[0] + ".gltf") };
 
@@ -298,8 +302,8 @@ int main()
 		pConstantBuffers[0] = normalGSConstantBuffer.Get();
 		g_pDeviceContext->GSSetConstantBuffers(0, ARRAYSIZE(pConstantBuffers), pConstantBuffers);
 
-		// Create global transform for mesh constants
-		Matrix globalTransform = Matrix::CreateScale(globalScale)
+		// Create global root transform for mesh constants
+		Matrix globalRootTransform = Matrix::CreateScale(globalScale)
 			* Matrix::CreateFromQuaternion(globalRot) * Matrix::CreateTranslation(globalPos);
 
 		// Start rendering
@@ -311,7 +315,7 @@ int main()
 				{
 					// Create mesh constants
 					sturdy_guacamole::MeshConstants meshConstants{};
-					meshConstants.WorldMatrix = step.m_globalTransform * globalTransform;
+					meshConstants.WorldMatrix = step.m_globalTransform * globalRootTransform;
 					meshConstants.WorldIT = meshConstants.WorldMatrix.Invert().Transpose();					
 
 					// Update mesh constant buffer
@@ -347,6 +351,13 @@ int main()
 		imguiApp.NewFrame();
 		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
+		ImGui::Begin("Images");
+		for (const auto& image : gltfModel->m_images)
+		{
+			ImGui::Image(image.Get(), ImVec2(256, 256));
+		}
+		ImGui::End();
+
 		ImGui::Begin("Details Panel");
 		ImGui::Text("Hello world!");
 		ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
@@ -360,13 +371,6 @@ int main()
 		ImGui::DragFloat("Global Scale", &globalScale, 0.002f, 0.01f, 2.0f);
 		ImGui::End();
 
-		ImGui::Begin("Images");
-		for (const auto& image : gltfModel->m_images)
-		{
-			ImGui::Image(image.Get(), ImVec2(256, 256));
-		}
-		ImGui::End();
-
 		ImGui::Begin("Assets");
 		static int item_current_idx{};
 		for (int i{}; i < asset_names.size(); i++)
@@ -377,7 +381,7 @@ int main()
 				item_current_idx = i;
 				std::filesystem::path assetPath = gltfDir / asset_names[i] / L"glTF" / (asset_names[i] + ".gltf");
 				auto newModel = std::make_shared<sturdy_guacamole::GLTFModel>(assetPath);
-				gltfModel = newModel;
+				gltfModel = std::move(newModel);
 			}
 
 			// Set the initial focus
