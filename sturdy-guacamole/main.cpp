@@ -69,7 +69,7 @@ int main()
 	sturdy_guacamole::Graphics gfx{};
 
 	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
-	std::vector<std::string> asset_names{ "TextureCoordinateTest", "EnvironmentTest", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
+	std::vector<std::string> asset_names{ "AnimatedCube", "TextureCoordinateTest", "EnvironmentTest", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
 		"WaterBottle", "Buggy", "Fox", };
 
 	// if you want to load all glTF models in a directory, use this code

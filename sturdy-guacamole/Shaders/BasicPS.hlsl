@@ -7,12 +7,12 @@ cbuffer MaterialConstants : register(b0)
 	float RoughnessFactor;
 	float NormalScale;
 	float OcclusionStrength;
-	bool HasBaseColorTex;
+	bool Has_BaseColorTex;
 
-	bool HasMetallicRoughnessTex;
-	bool HasNormalTex;
-	bool HasOcclusionTex;
-	bool HasEmissiveTex;
+	bool Has_MetallicRoughnessTex;
+	bool Has_NormalTex;
+	bool Has_OcclusionTex;
+	bool Has_EmissiveTex;
 };
 
 cbuffer CommonConstants : register(b1)
@@ -29,13 +29,13 @@ cbuffer CommonConstants : register(b1)
 
 cbuffer AttributeConstants : register(b2)
 {
-	bool HasNormal{};
-	bool HasTangent{};
-	bool HasTexcoord_0{};
-	bool HasColor_0{};
+	bool Has_Normal;
+	bool Has_Tangent;
+	bool Has_Texcoord_0;
+	bool Has_Color_0;
 
-	bool HasJoint_0{};
-	bool HasWeight_0{};
+	bool Has_Joint_0;
+	bool Has_Weight_0;
 
 }
 
@@ -81,7 +81,7 @@ float3 GetNormal(PSInput psInput)
 {
 	float3 n = psInput.normal;
 
-	if (!HasNormal)
+	if (!Has_Normal)
 	{
 		// generate normal with ddx ddy
 		float3 dp1 = ddx(psInput.worldPos);
@@ -89,7 +89,7 @@ float3 GetNormal(PSInput psInput)
 		n = normalize(cross(dp2, dp1));
 	}
 
-	if (HasNormalTex)
+	if (Has_NormalTex)
 	{
 		float du1 = ddx(psInput.uv).x;
 		float dv1 = ddx(psInput.uv).y;
@@ -184,16 +184,16 @@ float3 Diffuse_brdf(float3 color)
 
 float4 main(PSInput psInput) : SV_Target0
 {
-	float4 sampledColor = (HasBaseColorTex) ? BaseColorTex.Sample(Sampler_BaseColorTex, psInput.uv) : float4(1.0, 1.0, 1.0, 1.0);
+	float4 sampledColor = (Has_BaseColorTex) ? BaseColorTex.Sample(Sampler_BaseColorTex, psInput.uv) : float4(1.0, 1.0, 1.0, 1.0);
 	sampledColor.rgb = pow(sampledColor.rgb, float3(2.2, 2.2, 2.2));
 	sampledColor *= BaseColorFactor;
 
 	const float3 baseColor = sampledColor.rgb;
 
-	float metallic = (HasMetallicRoughnessTex) ? MetallicRoughnessTex.Sample(Sampler_MetallicRoughnessTex, psInput.uv).b : 1.0;
+	float metallic = (Has_MetallicRoughnessTex) ? MetallicRoughnessTex.Sample(Sampler_MetallicRoughnessTex, psInput.uv).b : 1.0;
 	metallic *= MetallicFactor;
 
-	float roughness = (HasMetallicRoughnessTex) ? MetallicRoughnessTex.Sample(Sampler_MetallicRoughnessTex, psInput.uv).g : 1.0;
+	float roughness = (Has_MetallicRoughnessTex) ? MetallicRoughnessTex.Sample(Sampler_MetallicRoughnessTex, psInput.uv).g : 1.0;
 	roughness *= RoughnessFactor;
 
 	const float3 n = GetNormal(psInput);
@@ -251,7 +251,7 @@ float4 main(PSInput psInput) : SV_Target0
 
 			// The BRDF of the metallic-roughness material is a linear interpolation of a metallic BRDF and a dielectric BRDF.
 			float3 material_brdf = lerp(dielectric_brdf, metal_brdf, metallic);
-			final_color.rgb += material_brdf * pbrInput.NdotL;
+			final_color.rgb += material_brdf * max(pbrInput.NdotL, 0.0);
 		}
 
 		// We can simplify the mix and arrive at the final BRDF for the material
@@ -265,22 +265,22 @@ float4 main(PSInput psInput) : SV_Target0
 		//	float3 f_diffuse = (1 - F) / PI * c_diff;
 		//	float3 f_specular = F * Specular_brdf(pbrInput);
 		//	float3 material_brdf = f_diffuse + f_specular;
-		//	final_color.rgb += material_brdf * pbrInput.NdotL;
+		//	final_color.rgb += material_brdf * max(pbrInput.NdotL, 0.0);
 		//}
 	}
 
-	if (HasOcclusionTex)
+	if (Has_OcclusionTex)
 	{
 		float ao = OcclusionTex.Sample(Sampler_OcclusionTex, psInput.uv).r;
 		final_color.rgb = lerp(final_color.rgb, final_color.rgb * ao, OcclusionStrength);
 	}
 
-	if (HasEmissiveTex)
+	if (Has_EmissiveTex)
 	{
 		float3 emissive = EmissiveTex.Sample(Sampler_EmissiveTex, psInput.uv).rgb * EmissiveFactor;
 		final_color.rgb += emissive;
 	}
-
+	//final_color.rgb = saturate(final_color.rgb);
 	return final_color;
 
 }
