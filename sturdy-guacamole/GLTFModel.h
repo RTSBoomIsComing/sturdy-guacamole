@@ -6,6 +6,7 @@
 #include "GLTFMesh.h"
 #include "GLTFNode.h"
 #include "GLTFScene.h"
+#include "GLTFAnimation.h"
 
 #include <d3d11.h>
 #include <wrl/client.h>
@@ -37,6 +38,7 @@ namespace sturdy_guacamole
 		std::vector<GLTFMesh> m_meshes{};
 		std::vector<GLTFNode> m_nodes{};
 		std::vector<GLTFScene> m_scenes{};
+		std::vector<GLTFAnimation> m_animations{};
 		std::vector<ComPtr<ID3D11ShaderResourceView>> m_images{};
 		std::vector<ComPtr<ID3D11SamplerState>> m_samplers{};
 

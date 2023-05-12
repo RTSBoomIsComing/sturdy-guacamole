@@ -280,7 +280,7 @@ float4 main(PSInput psInput) : SV_Target0
 		float3 emissive = EmissiveTex.Sample(Sampler_EmissiveTex, psInput.uv).rgb * EmissiveFactor;
 		final_color.rgb += emissive;
 	}
-	//final_color.rgb = saturate(final_color.rgb);
+
 	return final_color;
 
 }

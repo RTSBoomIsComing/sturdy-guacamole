@@ -90,6 +90,12 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 		m_scenes.push_back(GLTFScene{ tinyScene, *this });
 	}
 
+	// populate animations
+	//for (const auto& tinyAnimation : tinyModel.animations)
+	//{
+	//	m_animations.push_back(GLTFAnimation{ tinyModel, tinyAnimation, *this });
+	//}
+
 
 }
 

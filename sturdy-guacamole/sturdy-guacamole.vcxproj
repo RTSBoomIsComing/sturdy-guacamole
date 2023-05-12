@@ -133,6 +133,7 @@
   <ItemGroup>
     <ClCompile Include="Dx11Application.cpp" />
     <ClCompile Include="Dx11Helpers.cpp" />
+    <ClCompile Include="GLTFAnimation.cpp" />
     <ClCompile Include="GLTFBufferView.cpp" />
     <ClCompile Include="GLTFDx11Helpers.cpp" />
     <ClCompile Include="GLTFMaterial.cpp" />
@@ -144,12 +145,14 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="GLTFMesh.cpp" />
     <ClCompile Include="GLTFPrimitive.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConstantBuffers.h" />
     <ClInclude Include="Dx11Helpers.h" />
     <ClInclude Include="Dx11Application.h" />
+    <ClInclude Include="GLTFAnimation.h" />
     <ClInclude Include="GLTFBufferView.h" />
     <ClInclude Include="GLTFDx11Helpers.h" />
     <ClInclude Include="GLTFMaterial.h" />
@@ -160,6 +163,7 @@
     <ClInclude Include="ImguiApplication.h" />
     <ClInclude Include="GLTFMesh.h" />
     <ClInclude Include="GLTFPrimitive.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="Win32Application.h" />
   </ItemGroup>

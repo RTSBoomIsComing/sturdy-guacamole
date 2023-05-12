@@ -102,30 +102,31 @@ int main()
 	// Load glTF model
 	auto gltfModel = std::make_shared<sturdy_guacamole::GLTFModel>(gltfPath);
 
-	// Load textures for IBL
-	const std::filesystem::path assetBasePath = std::filesystem::current_path().parent_path();
-	const std::filesystem::path cubeMapBasePath = assetBasePath / "Assets" / "Textures" / "CubeMaps";
-
-	const std::filesystem::path envSpecularTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_SpecularHDR.dds";
-	const std::filesystem::path envDiffuseTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_DiffuseHDR.dds";
-	const std::filesystem::path brdfLutTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_Brdf.dds";
-
+	// Set textures for IBL
 	ComPtr<ID3D11ShaderResourceView> brdfLutTex{};
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), brdfLutTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
-		0, 0, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &brdfLutTex));
-
 	ComPtr<ID3D11ShaderResourceView> envSpecularTex{};
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), envSpecularTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
-		0, D3D11_RESOURCE_MISC_TEXTURECUBE, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &envSpecularTex));
-
 	ComPtr<ID3D11ShaderResourceView> envDiffuseTex{};
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), envDiffuseTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
-		0, D3D11_RESOURCE_MISC_TEXTURECUBE, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &envDiffuseTex));
+	{
+		const std::filesystem::path assetBasePath = std::filesystem::current_path().parent_path();
+		const std::filesystem::path cubeMapBasePath = assetBasePath / "Assets" / "Textures" / "CubeMaps";
 
+		const std::filesystem::path envSpecularTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_SpecularHDR.dds";
+		const std::filesystem::path envDiffuseTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_DiffuseHDR.dds";
+		const std::filesystem::path brdfLutTexPath = cubeMapBasePath / L"industrial_sunset_puresky_1k" / L"industrial_sunset_puresky_1k_Brdf.dds";
 
-	// Set IBL textures
-	ID3D11ShaderResourceView* ibl_srviews[] = { brdfLutTex.Get(), envSpecularTex.Get(), envDiffuseTex.Get() };
-	g_pDeviceContext->PSSetShaderResources(10, ARRAYSIZE(ibl_srviews), ibl_srviews);
+		ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), brdfLutTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
+			0, 0, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &brdfLutTex));
+
+		ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), envSpecularTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
+			0, D3D11_RESOURCE_MISC_TEXTURECUBE, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &envSpecularTex));
+
+		ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(g_pDevice.Get(), envDiffuseTexPath.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
+			0, D3D11_RESOURCE_MISC_TEXTURECUBE, DirectX::DX11::DDS_LOADER_FLAGS::DDS_LOADER_DEFAULT, nullptr, &envDiffuseTex));
+
+		// Set IBL textures
+		ID3D11ShaderResourceView* ibl_srviews[] = { brdfLutTex.Get(), envSpecularTex.Get(), envDiffuseTex.Get() };
+		g_pDeviceContext->PSSetShaderResources(10, ARRAYSIZE(ibl_srviews), ibl_srviews);
+	}
 
 	// Create common constant buffer
 	CD3D11_BUFFER_DESC bufferDesc{ sizeof(sturdy_guacamole::CommonConstants), D3D11_BIND_CONSTANT_BUFFER,
@@ -316,7 +317,7 @@ int main()
 					// Create mesh constants
 					sturdy_guacamole::MeshConstants meshConstants{};
 					meshConstants.WorldMatrix = step.m_globalTransform * globalRootTransform;
-					meshConstants.WorldIT = meshConstants.WorldMatrix.Invert().Transpose();					
+					meshConstants.WorldIT = meshConstants.WorldMatrix.Invert().Transpose();
 
 					// Update mesh constant buffer
 					D3D11_MAPPED_SUBRESOURCE mappedResource{};
@@ -367,7 +368,7 @@ int main()
 		ImGui::Checkbox("On", &bDrawNormals);
 		ImGui::SameLine();
 		ImGui::SliderFloat("Scale", &normalGSConstants.Scale, 0.0f, 0.01f);
-		ImGui::DragFloat("Viewer Distance", &viewFocusDistance, 0.01f,0.001f, 20.0f);
+		ImGui::DragFloat("Viewer Distance", &viewFocusDistance, 0.01f, 0.001f, 20.0f);
 		ImGui::DragFloat("Global Scale", &globalScale, 0.002f, 0.01f, 2.0f);
 		ImGui::End();
 

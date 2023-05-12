@@ -29,7 +29,6 @@ sturdy_guacamole::GLTFBufferView::GLTFBufferView(const tinygltf::Model& model, c
 	CD3D11_BUFFER_DESC bufferDesc{ (UINT)bufferView.byteLength, (UINT)bindFlag };
 
 	D3D11_SUBRESOURCE_DATA subresourceData{};
-	//subresourceData.pSysMem = model.buffers[bufferView.buffer].data.data() + bufferView.byteOffset;
 	subresourceData.pSysMem = &model.buffers[bufferView.buffer].data[bufferView.byteOffset];
 
 	HRESULT hr = g_pDevice->CreateBuffer(&bufferDesc, &subresourceData, &m_buffer);

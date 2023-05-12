@@ -196,3 +196,31 @@ D3D11_SAMPLER_DESC sturdy_guacamole::ConvertToDx11SamplerDesc(int magFilter, int
 
 	return samplerDesc;
 }
+
+unsigned int sturdy_guacamole::GetNumberOfComponents(int accessorType)
+{
+	switch (accessorType)
+	{
+	case TINYGLTF_TYPE_SCALAR:
+		return 1;
+	case TINYGLTF_TYPE_VEC2:
+		return 2;
+	case TINYGLTF_TYPE_VEC3:
+		return 3;
+	case TINYGLTF_TYPE_VEC4:
+		return 4;
+	case TINYGLTF_TYPE_VECTOR:
+		return 4;
+	case TINYGLTF_TYPE_MAT2:
+		return 4;
+	case TINYGLTF_TYPE_MAT3:
+		return 9;
+	case TINYGLTF_TYPE_MAT4:
+		return 16;
+	case TINYGLTF_TYPE_MATRIX:
+		return 16;
+	default:
+		assert("invalid accessor type");
+	}
+	return 0;
+}
