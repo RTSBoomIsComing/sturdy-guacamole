@@ -67,9 +67,6 @@
     <ClCompile Include="Rendering\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Win32Application.h">
@@ -123,7 +120,7 @@
     <ClInclude Include="Rendering\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Mesh.h">
+    <ClInclude Include="Rendering\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

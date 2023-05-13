@@ -145,7 +145,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="GLTFMesh.cpp" />
     <ClCompile Include="GLTFPrimitive.cpp" />
-    <ClCompile Include="Rendering\Mesh.cpp" />
     <ClCompile Include="Rendering\Model.cpp" />
     <ClCompile Include="Win32Application.cpp" />
   </ItemGroup>
@@ -164,7 +163,7 @@
     <ClInclude Include="ImguiApplication.h" />
     <ClInclude Include="GLTFMesh.h" />
     <ClInclude Include="GLTFPrimitive.h" />
-    <ClInclude Include="Rendering\Mesh.h" />
+    <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\Model.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="Win32Application.h" />
