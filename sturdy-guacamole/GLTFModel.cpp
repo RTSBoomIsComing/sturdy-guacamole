@@ -34,7 +34,7 @@ sturdy_guacamole::GLTFModel::GLTFModel(const std::filesystem::path& path)
 	m_images.reserve(tinyModel.images.size());
 	for (const auto& tinyImage : tinyModel.images)
 	{
-		DXGI_FORMAT format = sturdy_guacamole::ConvertToDXGIFormat(tinyImage.pixel_type, tinyImage.component);
+		DXGI_FORMAT format = sturdy_guacamole::ConvertToDXGIFormat(tinyImage.pixel_type, tinyImage.component, false, true);
 
 		ComPtr<ID3D11Texture2D> tex2d{};
 		ComPtr<ID3D11ShaderResourceView> srv{};

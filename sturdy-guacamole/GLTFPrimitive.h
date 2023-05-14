@@ -46,6 +46,7 @@ namespace sturdy_guacamole
 			std::vector<UINT> strides{};
 			std::vector<UINT> offsets{};
 			UINT count{};
+			UINT baseVertexLocation{};
 		} m_vertex;
 
 		// inform that the primitive has certain attributes

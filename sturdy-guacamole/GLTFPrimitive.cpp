@@ -35,11 +35,11 @@ void sturdy_guacamole::GLTFPrimitive::Draw(ID3D11DeviceContext* pDeviceContext) 
 	if (m_index.pBuffer != nullptr)
 	{
 		pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
-		pDeviceContext->DrawIndexed(m_index.count, 0, 0);
+		pDeviceContext->DrawIndexed(m_index.count, 0, m_vertex.baseVertexLocation);
 	}
 	else
 	{
-		pDeviceContext->Draw(m_vertex.count, 0);
+		pDeviceContext->Draw(m_vertex.count, m_vertex.baseVertexLocation);
 	}
 }
 
@@ -59,11 +59,11 @@ void sturdy_guacamole::GLTFPrimitive::DrawInstanced(ID3D11DeviceContext* pDevice
 	if (m_index.pBuffer != nullptr)
 	{
 		pDeviceContext->IASetIndexBuffer(m_index.pBuffer, m_index.format, m_index.offset);
-		pDeviceContext->DrawIndexedInstanced(m_index.count, instanceCount, 0, 0, 0);
+		pDeviceContext->DrawIndexedInstanced(m_index.count, instanceCount, 0, m_vertex.baseVertexLocation, 0);
 	}
 	else
 	{
-		pDeviceContext->DrawInstanced(m_vertex.count, instanceCount, 0, 0);
+		pDeviceContext->DrawInstanced(m_vertex.count, instanceCount, m_vertex.baseVertexLocation, 0);
 	}
 }
 

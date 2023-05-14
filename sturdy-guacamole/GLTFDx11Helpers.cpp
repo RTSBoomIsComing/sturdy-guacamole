@@ -26,11 +26,24 @@ D3D_PRIMITIVE_TOPOLOGY sturdy_guacamole::ConvertToDx11Topology(int gltfPrimitive
 	return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 }
 
-DXGI_FORMAT sturdy_guacamole::ConvertToDXGIFormat(int compType, int compCount, bool srgb)
+DXGI_FORMAT sturdy_guacamole::ConvertToDXGIFormat(int compType, int compCount, bool srgb, bool unorm)
 {
 	if (srgb && compType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE && compCount == 4)
 	{
 		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	}
+
+	if (unorm && compType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+	{
+		switch (compCount)
+		{
+		case 1:
+			return DXGI_FORMAT_R8_UNORM;
+		case 2:
+			return DXGI_FORMAT_R8G8_UNORM;
+		case 4:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		}
 	}
 
 	if (compType == TINYGLTF_COMPONENT_TYPE_FLOAT)
@@ -47,19 +60,21 @@ DXGI_FORMAT sturdy_guacamole::ConvertToDXGIFormat(int compType, int compCount, b
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
 		}
 	}
-	else if (compType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+
+	if (compType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
 	{
 		switch (compCount)
 		{
 		case 1:
-			return DXGI_FORMAT_R8_UNORM;
+			return DXGI_FORMAT_R8_UINT;
 		case 2:
-			return DXGI_FORMAT_R8G8_UNORM;
+			return DXGI_FORMAT_R8G8_UINT;
 		case 4:
-			return DXGI_FORMAT_R8G8B8A8_UNORM;
+			return DXGI_FORMAT_R8G8B8A8_UINT;
 		}
 	}
-	else if (compType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+
+	if (compType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 	{
 		switch (compCount)
 		{
@@ -71,7 +86,8 @@ DXGI_FORMAT sturdy_guacamole::ConvertToDXGIFormat(int compType, int compCount, b
 			return DXGI_FORMAT_R16G16B16A16_UINT;
 		}
 	}
-	else if (compType == TINYGLTF_COMPONENT_TYPE_SHORT)
+
+	if (compType == TINYGLTF_COMPONENT_TYPE_SHORT)
 	{
 		switch (compCount)
 		{
@@ -83,7 +99,8 @@ DXGI_FORMAT sturdy_guacamole::ConvertToDXGIFormat(int compType, int compCount, b
 			return DXGI_FORMAT_R16G16B16A16_SINT;
 		}
 	}
-	else if (compType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+
+	if (compType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
 	{
 		switch (compCount)
 		{
@@ -97,7 +114,8 @@ DXGI_FORMAT sturdy_guacamole::ConvertToDXGIFormat(int compType, int compCount, b
 			return DXGI_FORMAT_R32G32B32A32_UINT;
 		}
 	}
-	else if (compType == TINYGLTF_COMPONENT_TYPE_BYTE)
+
+	if (compType == TINYGLTF_COMPONENT_TYPE_BYTE)
 	{
 		switch (compCount)
 		{

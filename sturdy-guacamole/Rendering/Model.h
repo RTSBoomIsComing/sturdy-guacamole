@@ -5,12 +5,15 @@
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;
 
+#include <directxtk/SimpleMath.h>
+
 #include <vector>
 #include <string>
 #include <optional>
 #include <variant>
 #include <span>
 #include <stdint.h>
+
 
 namespace sturdy_guacamole::rendering
 {
@@ -51,7 +54,7 @@ namespace sturdy_guacamole::rendering
 
 	/*
 	* The Model class contains a collection of Scenes, Animations, Skins, Cameras, Materials, and Meshes.
-	* The Model class also contains a collection of data like ID3D11Buffer, ID3D11Texture2D, and ID3D11SamplerState.
+	* The Model class also contains a collection of data like ID3D11Buffer, ID3D11ShaderResourceView, and ID3D11SamplerState.
 	* The Model class is designed according to data-oriented design.
 	* All of these data are released when the Model class is destroyed.
 	*/
@@ -64,23 +67,33 @@ namespace sturdy_guacamole::rendering
 		struct
 		{
 			std::vector<std::string> name{};
-			std::vector<unsigned int> root{};
+			std::vector<unsigned int> nodes{};
 		} m_scene_list;
 
 		struct
 		{
 			std::vector<std::string> name{};
-			std::vector<std::array<float, 3>>		translation{};
-			std::vector<std::array<float, 4>>		rotation{};
-			std::vector<std::array<float, 3>>		scale{};
-			std::vector<std::array<float, 16>>		matrix{};
+			std::vector<DirectX::SimpleMath::Vector3>		translation{};
+			std::vector<DirectX::SimpleMath::Quaternion>	rotation{};
+			std::vector<DirectX::SimpleMath::Vector3>		scale{};
+			std::vector<DirectX::SimpleMath::Matrix>		matrix{};
 
 			std::vector<std::vector<uint16_t>>		children{};
-			std::vector<std::optional<uint16_t>>	parent{}; // For convenience
+
+			/*
+			* https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#nodes-and-hierarchy
+			* The node hierarchy MUST be a set of disjoint strict trees.
+			* That is node hierarchy MUST NOT contain cycles and each node MUST have zero or one parent node.
+			* 
+			* A node is called a root node when it doesn¡¯t have a parent.
+			*/
+			std::vector<std::optional<uint16_t>>	parent{};
 
 			std::vector<std::optional<uint16_t>>	mesh{};
-			std::vector<std::optional<uint16_t>>	skin{};
-			std::vector<std::vector<float>>			weights{};
+
+			// TODO : implement skin and morph animation
+			//std::vector<std::optional<uint16_t>>	skin{};
+			//std::vector<std::vector<float>>		weights{};
 		} m_node_list;
 
 		struct
@@ -102,11 +115,17 @@ namespace sturdy_guacamole::rendering
 			std::vector<PS_Preset>		preset{};
 		} m_material_list;
 
+		
+
 		struct
 		{
 			std::vector<std::string> name{};
+
+			// id of m_d3d11_resource_list.sampler
 			std::vector<std::optional<uint16_t>> sampler{};
-			std::vector<std::optional<uint16_t>> source{};
+
+			// id of m_d3d11_resource_list.srview
+			std::vector<std::optional<uint16_t>> image{};
 		} m_texture_list;
 
 		// TODO : implement animation, skin
@@ -120,17 +139,22 @@ namespace sturdy_guacamole::rendering
 
 		//} skin_list;
 
-		using Accessor = std::variant<ID3D11Buffer*, std::span<float>>;
-		std::vector<Accessor> accessor_list;
+		/*
+		* The BufferView does not represent of glTF 2.0 itself
+		* 
+		* 
+		*/
+		using BufferView = std::variant<ID3D11Buffer*, std::span<float>>;
+		std::vector<BufferView> buffer_view_list;
 
 		std::vector<float> m_float_data_buffer{};
 
 		struct
 		{
-			std::vector<ComPtr<ID3D11Buffer>> buffer{};
-			std::vector<ComPtr<ID3D11InputLayout>> input_layout{};
-			std::vector<ComPtr<ID3D11ShaderResourceView>> srview{};
-			std::vector<ComPtr<ID3D11SamplerState>> sampler{};
+			std::vector<ComPtr<ID3D11Buffer>>				buffer{};
+			std::vector<ComPtr<ID3D11InputLayout>>			input_layout{};
+			std::vector<ComPtr<ID3D11ShaderResourceView>>	srview{};
+			std::vector<ComPtr<ID3D11SamplerState>>			sampler{};
 		} m_d3d11_resource_list;
 	};
 
