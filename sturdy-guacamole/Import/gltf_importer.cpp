@@ -5,30 +5,28 @@
 
 bool sturdy_guacamole::import::GLTFImporter::Import(const std::filesystem::path& file_name, rendering::Model& model)
 {
+	pModel = &model;
 	tinygltf::Model tiny_model;
 	bool result = this->Load(file_name, tiny_model);
 	if (!result) {
 		return false;
 	}
 
+	this->ProcessScenes(tiny_model.scenes);
 
-	model.m_scene_list.name.resize(tiny_model.scenes.size());
-	model.m_scene_list.nodes.resize(tiny_model.scenes.size());
-	for (size_t scene_id{}; scene_id < tiny_model.scenes.size(); scene_id++) {
-		const auto& tiny_scene = tiny_model.scenes[scene_id];
-
-		model.m_scene_list.name.push_back(tiny_scene.name);
-
-		for (const int node_id : tiny_scene.nodes) {
-			model.m_scene_list.nodes.push_back(static_cast<unsigned int>(node_id));
-		}
-	}
 
 	model.m_node_list.name.reserve(tiny_model.nodes.size());
-	model.m_node_list.mesh.reserve(tiny_model.nodes.size());
 	for (const auto& tiny_node : tiny_model.nodes) {
 		model.m_node_list.name.push_back(tiny_node.name);
-		model.m_node_list.mesh.push_back(static_cast<uint16_t>(tiny_node.mesh));
+	}
+
+	model.m_node_list.mesh.resize(tiny_model.nodes.size());
+	for (size_t node_id{}; node_id < tiny_model.nodes.size(); node_id++)
+	{
+		const auto& tiny_node = tiny_model.nodes[node_id];
+		if (tiny_node.mesh >= 0) {
+			model.m_node_list.mesh[node_id] = static_cast<uint16_t>(tiny_node.mesh);
+		}
 	}
 
 	model.m_node_list.matrix.resize(tiny_model.nodes.size());
@@ -70,16 +68,16 @@ bool sturdy_guacamole::import::GLTFImporter::Import(const std::filesystem::path&
 
 
 
-	model.m_node_list.children.resize(tiny_model.nodes.size());
-	model.m_node_list.parent.resize(tiny_model.nodes.size());
-	for (size_t node_id{}; node_id < tiny_model.nodes.size(); node_id++) {
-		const auto& tiny_node = tiny_model.nodes[node_id];
+	//model.m_node_list.children.resize(tiny_model.nodes.size());
+	//model.m_node_list.parent.resize(tiny_model.nodes.size());
+	//for (size_t node_id{}; node_id < tiny_model.nodes.size(); node_id++) {
+	//	const auto& tiny_node = tiny_model.nodes[node_id];
 
-		for (const auto& tiny_child : tiny_node.children) {
-			model.m_node_list.children[node_id].push_back(static_cast<uint16_t>(tiny_child));
-			model.m_node_list.parent[tiny_child] = static_cast<uint16_t>(node_id);
-		}
-	}
+	//	for (const auto& tiny_child : tiny_node.children) {
+	//		model.m_node_list.children[node_id].push_back(static_cast<uint16_t>(tiny_child));
+	//		model.m_node_list.parent[tiny_child] = static_cast<uint16_t>(node_id);
+	//	}
+	//}
 
 	return true;
 }
@@ -113,4 +111,36 @@ bool sturdy_guacamole::import::GLTFImporter::Load(const std::filesystem::path& f
 	}
 
 	return result;
+}
+
+void sturdy_guacamole::import::GLTFImporter::ProcessScenes(const std::vector<tinygltf::Scene>& tiny_scenes)
+{
+	pModel->m_scene_list.name.reserve(tiny_scenes.size());
+	for (const auto& tiny_scene : tiny_scenes) {
+		pModel->m_scene_list.name.push_back(tiny_scene.name);
+	}
+
+	pModel->m_scene_list.first_scene_root.resize(tiny_scenes.size());
+	pModel->m_scene_list.scene_root_count.resize(tiny_scenes.size());
+	for (size_t scene_id{}; scene_id < tiny_scenes.size(); scene_id++) 
+	{
+		const auto& tiny_scene = tiny_scenes[scene_id];
+		pModel->m_scene_list.scene_root_count[scene_id] = static_cast<uint16_t>(tiny_scene.nodes.size());
+		pModel->m_scene_list.first_scene_root[scene_id] = static_cast<uint16_t>(pModel->m_scene_root_list.size());
+
+		pModel->m_scene_root_list.reserve(tiny_scene.nodes.size());
+		bool is_first_scene_node{ true };
+		for (const int node_id : tiny_scene.nodes) 
+		{
+			sturdy_guacamole::rendering::Model::SceneRoot sceneRoot{};
+			sceneRoot.root_node = node_id;
+
+			if (!is_first_scene_node) {
+				pModel->m_scene_root_list.back().next_sibling = static_cast<uint16_t>(pModel->m_scene_root_list.size());
+			}
+
+			pModel->m_scene_root_list.push_back(sceneRoot);
+			is_first_scene_node = false;
+		}
+	}
 }

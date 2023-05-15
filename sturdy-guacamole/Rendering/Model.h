@@ -14,7 +14,6 @@ using Microsoft::WRL::ComPtr;
 #include <span>
 #include <stdint.h>
 
-
 namespace sturdy_guacamole::rendering
 {
 	struct IA_Preset
@@ -51,7 +50,10 @@ namespace sturdy_guacamole::rendering
 		// ID3D11DeviceContext::PSSetSamplers();
 		std::vector<ID3D11SamplerState*> sampler_array{};
 	};
+}
 
+namespace sturdy_guacamole::rendering
+{
 	/*
 	* The Model class contains a collection of Scenes, Animations, Skins, Cameras, Materials, and Meshes.
 	* The Model class also contains a collection of data like ID3D11Buffer, ID3D11ShaderResourceView, and ID3D11SamplerState.
@@ -64,12 +66,20 @@ namespace sturdy_guacamole::rendering
 		Model() = default;
 		~Model() = default;
 
+		struct SceneRoot
+		{
+			std::optional<uint16_t> next_sibling{};
+			uint16_t root_node{};
+		};
+		std::vector<SceneRoot> m_scene_root_list;
+
 		struct
 		{
 			std::vector<std::string> name{};
-			std::vector<unsigned int> nodes{};
+			std::vector<uint16_t> first_scene_root{};
+			std::vector<uint16_t> scene_root_count{};
 		} m_scene_list;
-
+		
 		struct
 		{
 			std::vector<std::string> name{};
@@ -77,8 +87,6 @@ namespace sturdy_guacamole::rendering
 			std::vector<DirectX::SimpleMath::Quaternion>	rotation{};
 			std::vector<DirectX::SimpleMath::Vector3>		scale{};
 			std::vector<DirectX::SimpleMath::Matrix>		matrix{};
-
-			std::vector<std::vector<uint16_t>>		children{};
 
 			/*
 			* https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#nodes-and-hierarchy
@@ -88,31 +96,34 @@ namespace sturdy_guacamole::rendering
 			* A node is called a root node when it doesn¡¯t have a parent.
 			*/
 			std::vector<std::optional<uint16_t>>	parent{};
+			std::vector<std::optional<uint16_t>>	first_child{};
+			std::vector<std::optional<uint16_t>>	next_sibling{};
 
 			std::vector<std::optional<uint16_t>>	mesh{};
 
 			// TODO : implement skin and morph animation
-			//std::vector<std::optional<uint16_t>>	skin{};
+			//std::vector<std::optional<identifier>>	skin{};
 			//std::vector<std::vector<float>>		weights{};
 		} m_node_list;
 
 		struct
 		{
 			std::vector<std::string> name{};
-			std::vector<uint16_t> primitive{};
+			std::vector<std::optional<uint16_t>> first_primitive{};
 		} m_mesh_list;
 
 		struct
 		{
+			std::vector<std::optional<uint16_t>> next_sibling{};
+			std::vector<std::optional<uint16_t>> material{};
 			std::vector<IA_Preset> ia_preset{};
-			std::optional<uint16_t>	material{};
 		} m_primitive_list;
 
 		struct
 		{
 			std::vector<std::string>	name{};
 			std::vector<Material>		info{};
-			std::vector<PS_Preset>		preset{};
+			std::vector<PS_Preset>		ps_preset{};
 		} m_material_list;
 
 		
@@ -120,11 +131,7 @@ namespace sturdy_guacamole::rendering
 		struct
 		{
 			std::vector<std::string> name{};
-
-			// id of m_d3d11_resource_list.sampler
 			std::vector<std::optional<uint16_t>> sampler{};
-
-			// id of m_d3d11_resource_list.srview
 			std::vector<std::optional<uint16_t>> image{};
 		} m_texture_list;
 
