@@ -21,6 +21,7 @@ namespace sturdy_guacamole::import
 
 		bool Load(const std::filesystem::path& file_name, tinygltf::Model& tiny_model);
 		void ProcessScenes(const std::vector<tinygltf::Scene>& tiny_scenes);
+		void ProcessNodes(const std::vector<tinygltf::Node>& tiny_nodes);
 
 		template <typename T, size_t count>
 		std::array<float, count> ConvertToFloatArray(const std::span<T>& view)

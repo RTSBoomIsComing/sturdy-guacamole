@@ -96,6 +96,8 @@ namespace sturdy_guacamole::rendering
 			* A node is called a root node when it doesn¡¯t have a parent.
 			*/
 			std::vector<std::optional<uint16_t>>	parent{};
+
+			std::vector<uint16_t>					child_count{};
 			std::vector<std::optional<uint16_t>>	first_child{};
 			std::vector<std::optional<uint16_t>>	next_sibling{};
 
