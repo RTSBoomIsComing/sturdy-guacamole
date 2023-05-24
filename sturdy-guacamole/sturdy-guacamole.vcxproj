@@ -140,7 +140,7 @@
     <ClCompile Include="GLTFModel.cpp" />
     <ClCompile Include="GLTFNode.cpp" />
     <ClCompile Include="GLTFScene.cpp" />
-    <ClCompile Include="Import\gltf_importer.cpp" />
+    <ClCompile Include="Importer\gltf_importer.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImguiApplication.cpp" />
     <ClCompile Include="main.cpp" />
@@ -160,7 +160,8 @@
     <ClInclude Include="GLTFModel.h" />
     <ClInclude Include="GLTFNode.h" />
     <ClInclude Include="GLTFScene.h" />
-    <ClInclude Include="Import\gltf_importer.h" />
+    <ClInclude Include="Group.h" />
+    <ClInclude Include="Importer\gltf_importer.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImguiApplication.h" />
     <ClInclude Include="GLTFMesh.h" />

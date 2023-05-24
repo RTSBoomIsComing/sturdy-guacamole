@@ -7,6 +7,7 @@
 
 // include my glTF to DirectX11 converter libraries
 #include "GLTFModel.h"
+#include "Importer/gltf_importer.h"
 
 
 
@@ -98,6 +99,9 @@ int main()
 	//}
 
 	std::filesystem::path gltfPath{ gltfDir / asset_names[0] / L"glTF" / (asset_names[0] + ".gltf") };
+	//sturdy_guacamole::importer::GLTFImporter importer{};
+	//sturdy_guacamole::rendering::Model model{};
+	//importer.Import(gltfPath, model);
 
 	// Load glTF model
 	auto gltfModel = std::make_shared<sturdy_guacamole::GLTFModel>(gltfPath);

@@ -1,25 +1,20 @@
 #pragma once
-#include "../Rendering/Model.h"
-
 #include <tiny_gltf.h>
 #include <filesystem>
 #include <vector>
 #include <array>
 #include <span>
 
-namespace sturdy_guacamole::import
+namespace sturdy_guacamole::importer
 {
-	class GLTFImporter
+	class GLTFImporter : public tinygltf::Model
 	{
 	public:
-		GLTFImporter() = default;
+		GLTFImporter(const std::filesystem::path& file_path);
 		~GLTFImporter() = default;
-		bool Import(const std::filesystem::path& file_name, rendering::Model& model);
 
 	private:
-		rendering::Model* pModel{};
-
-		bool Load(const std::filesystem::path& file_name, tinygltf::Model& tiny_model);
+		bool Load(const std::filesystem::path& file_path, tinygltf::Model* tiny_model);
 		void ProcessScenes(const std::vector<tinygltf::Scene>& tiny_scenes);
 		void ProcessNodes(const std::vector<tinygltf::Node>& tiny_nodes);
 

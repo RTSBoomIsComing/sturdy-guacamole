@@ -67,7 +67,7 @@
     <ClCompile Include="Rendering\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Import\gltf_importer.cpp">
+    <ClCompile Include="Importer\gltf_importer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -126,7 +126,10 @@
     <ClInclude Include="Rendering\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Import\gltf_importer.h">
+    <ClInclude Include="Importer\gltf_importer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Group.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

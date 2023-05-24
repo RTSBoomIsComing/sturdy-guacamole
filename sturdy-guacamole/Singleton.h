@@ -21,7 +21,7 @@ protected:
 	}
 
 public:
-	// Inherit with protected when you want to hide GetInstance()
+	// Inherit with protected when you want to hide Get()
 	static T& Get()
 	{
 		if (!s_instance)
