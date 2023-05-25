@@ -169,6 +169,7 @@
     <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\Model.h" />
     <ClInclude Include="Singleton.h" />
+    <ClInclude Include="Utility\FloatHelper.h" />
     <ClInclude Include="Win32Application.h" />
   </ItemGroup>
   <ItemGroup>

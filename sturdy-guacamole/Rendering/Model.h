@@ -101,11 +101,15 @@ namespace sturdy_guacamole
 		std::optional<uint16_t> next{};
 	};
 
+	struct Mesh
+	{
+		std::optional<uint16_t> id{};
+	};
 }
 
 namespace sturdy_guacamole::rendering
 {
-	using NodeGroup = Group<Name, Transform, Translation, Rotation, Scale, Parent, Children, Sibling>;
+	using NodeGroup = Group<Name, Transform, Translation, Rotation, Scale, Parent, Children, Sibling, Mesh>;
 
 	/*
 	* The Model class contains a collection of Scenes, Animations, Skins, Cameras, Materials, and Meshes.
