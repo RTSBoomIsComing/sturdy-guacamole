@@ -8,7 +8,7 @@ using Microsoft::WRL::ComPtr;
 
 #include <directxtk/SimpleMath.h>
 
-
+#include <list>
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -56,7 +56,8 @@ namespace sturdy_guacamole
 
 namespace sturdy_guacamole
 {
-	struct Name {
+	struct Name 
+	{
 		std::string str{};
 	};
 
@@ -92,7 +93,7 @@ namespace sturdy_guacamole
 	struct Children
 	{
 		std::uint32_t count{};
-		std::optional<uint16_t> first{};
+		std::optional<uint16_t> first{}; // first child
 	};
 
 	struct Sibling
@@ -106,15 +107,26 @@ namespace sturdy_guacamole
 		std::optional<uint16_t> id{};
 	};
 }
-
+namespace sturdy_guacamole::importer
+{
+	class GLTFImporter;
+}
 namespace sturdy_guacamole::rendering
 {
+	struct Scene
+	{
+		std::string name{};
+		std::list<uint16_t> roots{};
+	};
+
 	using NodeGroup = Group<Name, Transform, Translation, Rotation, Scale, Parent, Children, Sibling, Mesh>;
+
 
 	/*
 	* The Model class contains a collection of Scenes, Animations, Skins, Cameras, Materials, and Meshes.
 	* The Model class also contains a collection of data like ID3D11Buffer, ID3D11ShaderResourceView, and ID3D11SamplerState.
 	* The Model class is designed according to data-oriented design.
+	* The Model class is outer scene.
 	*/
 	class Model
 	{
@@ -122,8 +134,11 @@ namespace sturdy_guacamole::rendering
 		Model(const std::filesystem::path& file_name);
 		~Model() = default;
 
-		NodeGroup m_nodes{};
+		void ProcessNodes(importer::GLTFImporter const& gltf);
+		void ProcessScenes(importer::GLTFImporter const& gltf);
 
+		std::vector<Scene> m_scenes{};
+		NodeGroup m_nodes{};
 
 		//struct
 		//{

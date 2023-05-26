@@ -15,7 +15,5 @@ namespace sturdy_guacamole::importer
 
 	private:
 		bool Load(const std::filesystem::path& file_path, tinygltf::Model* tiny_model);
-		void ProcessScenes(const std::vector<tinygltf::Scene>& tiny_scenes);
-		void ProcessNodes(const std::vector<tinygltf::Node>& tiny_nodes);
 	};
 }

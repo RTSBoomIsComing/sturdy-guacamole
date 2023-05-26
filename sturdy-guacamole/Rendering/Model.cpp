@@ -5,8 +5,12 @@
 sturdy_guacamole::rendering::Model::Model(const std::filesystem::path& file_name)
 {
 	importer::GLTFImporter gltf{ file_name };
+	this->ProcessNodes(gltf);
+	this->ProcessScenes(gltf);
+}
 
-	// Process nodes
+void sturdy_guacamole::rendering::Model::ProcessNodes(importer::GLTFImporter const& gltf)
+{
 	m_nodes.resize(gltf.nodes.size());
 
 	for (size_t i{}; i < gltf.nodes.size(); i++)
@@ -54,23 +58,23 @@ sturdy_guacamole::rendering::Model::Model(const std::filesystem::path& file_name
 
 		if (!gltf.nodes[i].translation.empty())
 		{
-			const auto floats = utility::ConvertToFloatArray<double, 3>(gltf.nodes[i].translation);
+			const auto floats = utility::ConvertToFloatArray<const double, 3>(gltf.nodes[i].translation);
 			m_nodes.get<Translation>(i).vec3 = Vector3{ floats.data() };
 		}
 
 		if (!gltf.nodes[i].rotation.empty()) {
-			const auto floats = utility::ConvertToFloatArray<double, 4>(gltf.nodes[i].rotation);
+			const auto floats = utility::ConvertToFloatArray<const double, 4>(gltf.nodes[i].rotation);
 			m_nodes.get<Rotation>(i).quat = Quaternion{ floats.data() };
 		}
 
 		if (!gltf.nodes[i].scale.empty()) {
-			const auto floats = utility::ConvertToFloatArray<double, 3>(gltf.nodes[i].scale);
+			const auto floats = utility::ConvertToFloatArray<const double, 3>(gltf.nodes[i].scale);
 			m_nodes.get<Scale>(i).vec3 = Vector3{ floats.data() };
 		}
 
 		if (!gltf.nodes[i].matrix.empty())
 		{
-			const auto floats = utility::ConvertToFloatArray<double, 16>(gltf.nodes[i].matrix);
+			const auto floats = utility::ConvertToFloatArray<const double, 16>(gltf.nodes[i].matrix);
 			m_nodes.get<Transform>(i).matrix = Matrix{ floats.data() };
 		}
 		else
@@ -91,5 +95,19 @@ sturdy_guacamole::rendering::Model::Model(const std::filesystem::path& file_name
 		}
 
 		m_nodes.get<Mesh>(i).id = static_cast<uint16_t>(gltf.nodes[i].mesh);
+	}
+}
+
+void sturdy_guacamole::rendering::Model::ProcessScenes(importer::GLTFImporter const& gltf)
+{
+	m_scenes.resize(gltf.scenes.size());
+	for (size_t i{}; i < gltf.scenes.size(); i++)
+	{
+		m_scenes[i].name = gltf.scenes[i].name;
+
+		for (const int rootNode : gltf.scenes[i].nodes)
+		{
+			m_scenes[i].roots.push_back(static_cast<uint16_t>(rootNode));
+		}
 	}
 }
