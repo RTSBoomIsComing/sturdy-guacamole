@@ -13,7 +13,6 @@ using Microsoft::WRL::ComPtr;
 #include <string>
 #include <filesystem>
 #include <optional>
-#include <stdint.h>
 
 
 namespace sturdy_guacamole
@@ -93,18 +92,18 @@ namespace sturdy_guacamole
 	struct Children
 	{
 		std::uint32_t count{};
-		std::optional<uint16_t> first{}; // first child
+		std::optional<std::uint16_t> first{}; // first child
 	};
 
 	struct Sibling
 	{
-		std::optional<uint16_t> prev{};
-		std::optional<uint16_t> next{};
+		std::optional<std::uint16_t> prev{};
+		std::optional<std::uint16_t> next{};
 	};
 
 	struct Mesh
 	{
-		std::optional<uint16_t> id{};
+		std::optional<std::uint16_t> id{};
 	};
 }
 namespace sturdy_guacamole::importer
@@ -116,7 +115,7 @@ namespace sturdy_guacamole::rendering
 	struct Scene
 	{
 		std::string name{};
-		std::list<uint16_t> roots{};
+		std::list<std::uint16_t> roots{};
 	};
 
 	using NodeGroup = Group<Name, Transform, Translation, Rotation, Scale, Parent, Children, Sibling, Mesh>;

@@ -3,7 +3,6 @@
 #include <array>
 #include <vector>
 #include <optional>
-#include <stdint.h>
 
 namespace sturdy_guacamole::rendering
 {
@@ -14,7 +13,7 @@ namespace sturdy_guacamole::rendering
 			BaseColor, MetallicRoughness, Normal, Occlusion, Emissive, Count
 		};
 
-		std::array<std::optional<uint8_t>, TextureType::Count> texCoord{};
+		std::array<std::optional<std::uint8_t>, TextureType::Count> texCoord{};
 		std::array<float, 4> baseColor_factor{ 1.0f, 1.0f, 1.0f, 1.0f };	// default: white (1,1,1,1)
 		float metallic_factor{ 1.0f };
 		float roughness_factor{ 1.0f };

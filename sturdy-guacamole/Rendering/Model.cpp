@@ -21,7 +21,7 @@ void sturdy_guacamole::rendering::Model::ProcessNodes(importer::GLTFImporter con
 	for (size_t i{}; i < gltf.nodes.size(); i++)
 	{
 		const size_t children_count = gltf.nodes[i].children.size();
-		m_nodes.get<Children>(i).count = static_cast<uint32_t>(children_count);
+		m_nodes.get<Children>(i).count = static_cast<std::uint32_t>(children_count);
 
 
 		if (gltf.nodes[i].children.empty()) {
@@ -29,26 +29,26 @@ void sturdy_guacamole::rendering::Model::ProcessNodes(importer::GLTFImporter con
 		}
 
 		const int first_child = gltf.nodes[i].children.front();
-		m_nodes.get<Children>(i).first = static_cast<uint16_t>(first_child);
+		m_nodes.get<Children>(i).first = static_cast<std::uint16_t>(first_child);
 
 		for (size_t child_id{}; child_id < children_count; child_id++)
 		{
 			const int curr_sbling = gltf.nodes[i].children[child_id];
-			m_nodes.get<Parent>(curr_sbling).id = static_cast<uint16_t>(i);
+			m_nodes.get<Parent>(curr_sbling).id = static_cast<std::uint16_t>(i);
 		}
 
 		for (size_t child_id{}; child_id < children_count - 1; child_id++)
 		{
 			const int curr_sbling = gltf.nodes[i].children[child_id];
 			const int next_sbling = gltf.nodes[i].children[child_id + 1];
-			m_nodes.get<Sibling>(curr_sbling).next = static_cast<uint16_t>(next_sbling);
+			m_nodes.get<Sibling>(curr_sbling).next = static_cast<std::uint16_t>(next_sbling);
 		}
 
 		for (size_t child_id{ 1 }; child_id < children_count; child_id++)
 		{
 			const int curr_sbling = gltf.nodes[i].children[child_id];
 			const int prev_sbling = gltf.nodes[i].children[child_id - 1];
-			m_nodes.get<Sibling>(curr_sbling).prev = static_cast<uint16_t>(prev_sbling);
+			m_nodes.get<Sibling>(curr_sbling).prev = static_cast<std::uint16_t>(prev_sbling);
 		}
 	}
 
@@ -94,7 +94,7 @@ void sturdy_guacamole::rendering::Model::ProcessNodes(importer::GLTFImporter con
 			continue;
 		}
 
-		m_nodes.get<Mesh>(i).id = static_cast<uint16_t>(gltf.nodes[i].mesh);
+		m_nodes.get<Mesh>(i).id = static_cast<std::uint16_t>(gltf.nodes[i].mesh);
 	}
 }
 
@@ -107,7 +107,7 @@ void sturdy_guacamole::rendering::Model::ProcessScenes(importer::GLTFImporter co
 
 		for (const int rootNode : gltf.scenes[i].nodes)
 		{
-			m_scenes[i].roots.push_back(static_cast<uint16_t>(rootNode));
+			m_scenes[i].roots.push_back(static_cast<std::uint16_t>(rootNode));
 		}
 	}
 }

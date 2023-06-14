@@ -70,12 +70,11 @@ int main()
 	// Initialize Graphics singleton instance
 	sturdy_guacamole::Graphics gfx{};
 
-	std::filesystem::path gltfDir{ L"D:\\GitHub\\glTF-Sample-Models\\2.0" };
+	std::filesystem::path gltfDir{ L"C:\\Users\\dbckd\\Documents\\Github\\glTF-Sample-Models\\2.0" };
 	std::vector<std::string> asset_names{ "AnimatedCube", "TextureCoordinateTest", "EnvironmentTest", "DamagedHelmet", "Avocado", "ABeautifulGame", "Cube", "Triangle",
 		"WaterBottle", "Buggy", "Fox", };
 
 	// if you want to load all glTF models in a directory, use this code
-
 	// Enable buffering to prevent VS from chopping up UTF-8 byte sequences
 	//SetConsoleOutputCP(CP_UTF8);
 	//setvbuf(stdout, nullptr, _IOFBF, 1000);
@@ -96,11 +95,14 @@ int main()
 	//			&utf8[0], static_cast<int>(utf8.size()), nullptr, nullptr);
 	//
 	//		std::cout << utf8 << std::endl;
+	//		asset_names.push_back(utf8);
 	//	}
 	//}
 
 	std::filesystem::path gltfPath{ gltfDir / asset_names[0] / L"glTF" / (asset_names[0] + ".gltf") };
-	sturdy_guacamole::rendering::Model model{ gltfPath };
+	
+	// not using now
+	//sturdy_guacamole::rendering::Model model{ gltfPath };
 
 	// Load glTF model
 	auto gltfModel = std::make_shared<sturdy_guacamole::GLTFModel>(gltfPath);
