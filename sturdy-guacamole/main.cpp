@@ -135,7 +135,7 @@ int main()
 
 	// Create common constant buffer
 	CD3D11_BUFFER_DESC bufferDesc{ sizeof(sturdy_guacamole::CommonConstants), D3D11_BIND_CONSTANT_BUFFER,
-		D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE };
+		D3D11_USAGE_DEFAULT };
 
 	ComPtr<ID3D11Buffer> commonConstantBuffer;
 	ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &commonConstantBuffer));
@@ -284,10 +284,7 @@ int main()
 		commonConstants.ViewerPos = Vector4{ viewerPos };
 
 		// Update common constant buffer
-		D3D11_MAPPED_SUBRESOURCE mappedResource{};
-		g_pDeviceContext->Map(commonConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		::memcpy(mappedResource.pData, &commonConstants, sizeof(commonConstants));
-		g_pDeviceContext->Unmap(commonConstantBuffer.Get(), 0);
+		g_pDeviceContext->UpdateSubresource(commonConstantBuffer.Get(), 0, nullptr, &commonConstants, 0, 0);
 
 		//  Set vertex shader constant buffer
 		ID3D11Buffer* pConstantBuffers[] = {
@@ -300,9 +297,7 @@ int main()
 		// Update geometry shader constant buffer
 		static bool bDrawNormals{};
 		static sturdy_guacamole::NormalGSConstants normalGSConstants{};
-		g_pDeviceContext->Map(normalGSConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		::memcpy(mappedResource.pData, &normalGSConstants, sizeof(normalGSConstants));
-		g_pDeviceContext->Unmap(normalGSConstantBuffer.Get(), 0);
+		g_pDeviceContext->UpdateSubresource(normalGSConstantBuffer.Get(), 0, nullptr, &normalGSConstants, 0, 0);
 
 		// Set geometry shader constant buffer
 		pConstantBuffers[0] = normalGSConstantBuffer.Get();
@@ -325,10 +320,7 @@ int main()
 					meshConstants.WorldIT = meshConstants.WorldMatrix.Invert().Transpose();
 
 					// Update mesh constant buffer
-					D3D11_MAPPED_SUBRESOURCE mappedResource{};
-					g_pDeviceContext->Map(meshConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-					::memcpy(mappedResource.pData, &meshConstants, sizeof(meshConstants));
-					g_pDeviceContext->Unmap(meshConstantBuffer.Get(), 0);
+					g_pDeviceContext->UpdateSubresource(meshConstantBuffer.Get(), 0, nullptr, &meshConstants, 0, 0);
 					if (step.m_node->m_mesh)
 					{
 						for (const auto& primitive : step.m_node->m_mesh->m_meshPrimitives)
